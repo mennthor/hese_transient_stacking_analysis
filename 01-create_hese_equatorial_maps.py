@@ -29,9 +29,9 @@ icemodel = "SpiceMie"
 scan_str = "{}_nside????.i3.bz2".format(icemodel)
 
 
-for i, folder in enumerate(folders):
-    print("Working on scan:\n  {}".format(folder))
-    print("Output file path:\n  {}".format(outfiles[i]))
+for infolder, outfile in zip(folders, outfiles):
+    print("Working on scan:\n  {}".format(infolder))
+    print("Output file path:\n  {}".format(outfile))
 
     # make_healpy_map_from_HESE_scan(infolder=infolder,
     #                                scan_file_str=scan_str,
