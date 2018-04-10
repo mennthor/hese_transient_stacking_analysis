@@ -164,7 +164,8 @@ if __name__ == "__main__":
     # Job splitting args and job output paths
     nfiles_perjob = 100
     outpath = os.path.join("/data", "user", "tmenne",
-                           "03-check_HESE_MC_IDs_out")
+                           "hese_transient_stacking_analysis", "rawout",
+                           "check_HESE_MC_IDs")
     if os.path.isdir(outpath):
         print("")
         warnings.warn("Output folder '{}' is already ".format(outpath) +

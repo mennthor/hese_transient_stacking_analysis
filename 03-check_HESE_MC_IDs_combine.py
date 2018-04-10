@@ -16,11 +16,13 @@ import numpy as np
 try:
     from tqdm import tqdm
 except ImportError:
+    print("If you want fancy status bars: `pip install --user tqdm` ;)")
     tqdm = iter
 
 
-inpath = "/data/user/tmenne/check_HESE"
-inpath = os.path.join("/data", "user", "tmenne", "03-check_HESE_MC_IDs_out")
+inpath = os.path.join("/data", "user", "tmenne",
+                      "hese_transient_stacking_analysis", "rawout",
+                      "check_HESE_MC_IDs")
 outpath = os.path.join("/home", "tmenne", "analysis",
                        "hese_transient_stacking_analysis", "out",
                        "check_HESE_MC_IDs")
