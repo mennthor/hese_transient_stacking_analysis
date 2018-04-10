@@ -63,32 +63,29 @@ def make_run_list(ev_times, ev_runids, used_run_ids):
             d["good_tstart"] = tstart
             d["good_tstop"] = tstop
             run_list.append(d.copy())
-    print("Livetime: {:.3f} days".format(dt))
-    print("Selected {} / {} nonzero runs.".format(len(run_list),
-                                                  len(used_run_ids)))
+    print("  Livetime: {:.3f} days".format(dt))
+    print("  Selected {} / {} nonzero runs.".format(len(run_list),
+                                                    len(used_run_ids)))
     return run_list
 
 
 if __name__ == "__main__":
-    inpath = os.path.join("/home", "tmenne", "analysis",
-                          "hese_transient_stacking_analysis", "data",
-                          "official_runlists")
+    # Load current 7yr PS track data from skylab as record arrays, but only for
+    # the 4 year of HESE sources that are analysed here
+    pstracks = datasets.PointSourceTracks_v002p01b
+    sample_names = ["IC79", "IC86, 2011", "IC86, 2012", "IC86, 2013"]
 
     outpath = os.path.join("/home", "tmenne", "analysis",
                            "hese_transient_stacking_analysis", "out",
-                           "goodrun_lists")
+                           "runlists")
     if not os.path.isdir(outpath):
         os.makedirs(outpath)
-
-    # Load current 7yr PS track data from skylab as record arrays, but only for
-    # the 4 year of HESE sources
-    pstracks = datasets.PointSourceTracks_v002p01b
-    sample_names = ["IC79", "IC86, 2011", "IC86, 2012", "IC86, 2012-2014"]
 
     for name in sample_names:
         print("Making runlist for {}".format(name))
         used_run_ids = pstracks.coenders_runs(name)
         exp_file = pstracks.files(name)[0]
+        print("  Using PS track sample from skylab at:\n  {}".format(exp_file))
         exp = pstracks.load(exp_file)
         ev_times, ev_runids = exp["time"], exp["Run"]
         run_list = make_run_list(ev_times, ev_runids, used_run_ids)
