@@ -1,6 +1,6 @@
 # HESE Transient Stacking Analysis
 
-Analysis wiki: [https://wiki.icecube.wisc.edu/index.php/Transient_HESE_Stacking](Transient_HESE_Stacking)
+Analysis wiki: [Transient_HESE_Stacking](https://wiki.icecube.wisc.edu/index.php/Transient_HESE_Stacking)
 
 To redo the analysis:
 
