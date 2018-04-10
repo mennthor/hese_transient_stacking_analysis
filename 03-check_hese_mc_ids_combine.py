@@ -19,6 +19,8 @@ except ImportError:
     print("If you want fancy status bars: `pip install --user tqdm` ;)")
     tqdm = iter
 
+from myi3scripts import arr2str
+
 
 inpath = os.path.join("/data", "user", "tmenne",
                       "hese_transient_stacking_analysis", "rawout",
@@ -41,6 +43,8 @@ file_names = np.array(map(lambda s: os.path.basename(s), files))
 dataset_nums = set(map(lambda s: s.split("_")[0], file_names))
 
 # Combine all to a single JSON file
+print("Reading files from directory:\n  {}".format(inpath))
+print("  Found JSON files for datasets: {}".format(arr2str(dataset_nums)))
 for num in dataset_nums:
     print("Combining IDs from set '{}':".format(num))
     run_ids = []
