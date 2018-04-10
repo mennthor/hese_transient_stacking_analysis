@@ -13,7 +13,7 @@ import json
 import numpy as np
 import astropy.time as astrotime
 
-from skylab import datasets
+from skylab.datasets import Datasets
 
 
 def make_run_list(ev_times, ev_runids):
@@ -68,10 +68,14 @@ def make_run_list(ev_times, ev_runids):
     return run_list
 
 
-# Load current 7yr PS track data from skylab as record arrays, but only for
-# the 4 year of HESE sources that are analysed here
-pstracks = datasets.PointSourceTracks_v002p01
-sample_names = ["IC79", "IC86, 2011", "IC86, 2012", "IC86, 2013"]
+# Load PS track and GFU data from skylab as record arrays for the 6 years of
+# HESE sources that are analysed here
+ps_tracks = Datasets["PointSourceTracks"]
+ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012",
+                   "IC86, 2013", "IC86, 2014"]
+
+gfu_tracks = Datasets["GFU"]
+gfu_sample_names = ["IC86, 2015"]
 
 outpath = os.path.join("/home", "tmenne", "analysis",
                        "hese_transient_stacking_analysis", "out",
@@ -79,11 +83,23 @@ outpath = os.path.join("/home", "tmenne", "analysis",
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
-for name in sample_names:
+for name in ps_sample_names:
     print("Making runlist for {}".format(name))
-    exp_file = pstracks.files(name)[0]
+    exp_file = ps_tracks.files(name)[0]
     print("  Using PS track sample from skylab at:\n  {}".format(exp_file))
-    exp = pstracks.load(exp_file)
+    exp = ps_tracks.load(exp_file)
+    ev_times, ev_runids = exp["time"], exp["Run"]
+    run_list = make_run_list(ev_times, ev_runids)
+    fname = name.replace(", ", "_") + ".json"
+    with open(os.path.join(outpath, fname), "w") as outf:
+        json.dump(run_list, fp=outf, indent=2)
+        print("  Saved to:\n  {}".format(os.path.join(outpath, fname)))
+
+for name in gfu_sample_names:
+    print("Making runlist for {}".format(name))
+    exp_file = gfu_tracks.files(name)[0]
+    print("  Using GFU track sample from skylab at:\n  {}".format(exp_file))
+    exp = gfu_tracks.load(exp_file)
     ev_times, ev_runids = exp["time"], exp["Run"]
     run_list = make_run_list(ev_times, ev_runids)
     fname = name.replace(", ", "_") + ".json"
