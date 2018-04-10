@@ -6,6 +6,10 @@ simple arrays.
 
 Find pass2 scan files at:
     /data/ana/Diffuse/HESE/Pass2_reconstruction/reconstruction_tracks
+
+This script processes all track maps, converts them to an equatorial map,
+applies 1° smoothing in normal space and normalizes the map to have integral 1
+over the whole sphere.
 """
 from __future__ import print_function, division
 import os
