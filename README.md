@@ -2,11 +2,26 @@
 
 Analysis wiki: [Transient_HESE_Stacking](https://wiki.icecube.wisc.edu/index.php/Transient_HESE_Stacking)
 
-To redo the analysis:
+- Analyser: Thorben Menne
+- Mail: thorben.menne@tu-dortmund.de
+- Slack: @thorben
 
-1) Clone this repo
-2) Install python software dependencies with `pip install --user -e .` in their repos:
+## Redo the analysis
+
+Working paths are `./out` for results and `/data/user/tmenne/hese_transient_stacking_analysis/` for larger or intermediate cluster results.
+
+1) Clone or copy this this repository.
+2) Install additional python software dependencies with `pip install --user -e .` from their repositories (find them in `/home/tmenne/software`):
     - dagman
-    - myi3scripts:
-    - tdepps (Note: Needs devset2 to compile the C++ backend)
-3) Execute each script in order (some need to be run as cluster jobs).
+        + Tool to create dagman jobfiles
+    - myi3scripts
+        + Collection of helper functions
+    - tdepps
+        + Main analysis module
+        + Note: Needs devset2 to compile the C++ backend (April 2018)
+3) Executing each script here in order should rebuild all the files up to the final results.
+
+### Note
+For scripts, that need to run on the cluster, run the `_jobs.py` first, to create the jobfiles.
+Then submit them using the `jobfiles/<jobname>/*dag.start.sh` script on the submitter.
+After all jobs are done run the `*_combine.py` script to collect the results.
