@@ -1,8 +1,7 @@
 # coding: utf-8
 
 """
-Dump a list of tested time windows to load them in the analysis scripts and
-prepare a src list with the fixed parameters for the tested sources.
+Dump a list of tested time windows to load them in the analysis scripts.
 """
 
 import os
@@ -48,5 +47,3 @@ np.savetxt(X=dt, fname=os.path.join(outpath, "time_windows.txt"),
            comments="", header=header, fmt="%+12.3f", delimiter=delimiter)
 
 print("Saved time windows to:\n{}".format(outpath))
-
-# Make JSON files with only the needed information from 6 years pass2 HESE srcs

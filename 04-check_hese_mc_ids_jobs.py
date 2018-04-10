@@ -1,7 +1,7 @@
 # coding:utf-8
 
 """
-Create jobfiles for the `03-check_hese_mc_ids.py`.
+Create jobfiles for the `04-check_hese_mc_ids.py`.
 """
 
 from __future__ import print_function, division
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     _path = os.path.join("/home", "tmenne", "analysis",
                          "hese_transient_stacking_analysis")
     job_dir = os.path.join(_path, "jobfiles", "check_hese_mc_ids")
-    script = os.path.join(_path, "03-check_hese_mc_ids.py")
+    script = os.path.join(_path, "04-check_hese_mc_ids.py")
 
     ###########################################################################
     # Collect dataset structure
