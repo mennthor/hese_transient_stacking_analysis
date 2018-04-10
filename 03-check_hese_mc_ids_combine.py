@@ -22,10 +22,10 @@ except ImportError:
 
 inpath = os.path.join("/data", "user", "tmenne",
                       "hese_transient_stacking_analysis", "rawout",
-                      "check_HESE_MC_IDs")
+                      "check_hese_mc_ids")
 outpath = os.path.join("/home", "tmenne", "analysis",
                        "hese_transient_stacking_analysis", "out",
-                       "check_HESE_MC_IDs")
+                       "check_hese_mc_ids")
 if os.path.isdir(outpath):
     res = raw_input("'{}' already exists. Allow overwrites? ".format(outpath))
     if not res.lower() in ("y", "yes"):

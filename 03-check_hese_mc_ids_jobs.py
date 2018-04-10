@@ -1,7 +1,7 @@
 # coding:utf-8
 
 """
-Create jobfiles for the `03-check_HESE_MC_IDs.py`.
+Create jobfiles for the `03-check_hese_mc_ids.py`.
 """
 
 from __future__ import print_function, division
@@ -90,10 +90,10 @@ if __name__ == "__main__":
     # Job creation steering arguments
     job_creator = dagman.DAGManJobCreator(mem=1)
     job_name = "TransientHESE4yrStacking"
-    job_dir = os.path.join("/home", "tmenne", "analysis",
-                           "hese_transient_stacking_analysis", "jobfiles",
-                           "check_HESE_MC_IDs")
-    script = "./03-check_HESE_MC_IDs.py"
+    _path = os.path.join("/home", "tmenne", "analysis",
+                         "hese_transient_stacking_analysis")
+    job_dir = os.path.join(_path, "jobfiles", "check_hese_mc_ids")
+    script = os.path.join(_path, "03-check_hese_mc_ids.py")
 
     ###########################################################################
     # Collect dataset structure
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     nfiles_perjob = 100
     outpath = os.path.join("/data", "user", "tmenne",
                            "hese_transient_stacking_analysis", "rawout",
-                           "check_HESE_MC_IDs")
+                           "check_hese_mc_ids")
     if os.path.isdir(outpath):
         print("")
         warnings.warn("Output folder '{}' is already ".format(outpath) +
