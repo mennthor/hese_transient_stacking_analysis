@@ -100,10 +100,10 @@ if __name__ == "__main__":
     # Collect dataset structure
     ###########################################################################
     print("\nCollecting simulation file paths:")
-    # GFU IC86 2015 dataset
-    # TODO
-
-    # IC86 2012, 2013, 2015 datasets (available as i3 on final level)
+    # MC used for:
+    # Point Source tracks IC86 2012-2014 datasets
+    # GFU tracks IC86 2015-2017 datasets
+    # Available as i3 on final level
     fpath = os.path.join("/data", "ana", "PointSource", "IC86_2012_PS", "files",
                          "sim", "2012", "neutrino-generator")
     gcd_path = os.path.join("/data", "sim", "IceCube", "2012", "filtered",
@@ -129,7 +129,7 @@ if __name__ == "__main__":
             },
         }
 
-    # IC86 2011 datasets (only level 3 as i3)
+    # MC used for PS tracks IC86 2011 datasets (only level 3 as i3)
     fpath = os.path.join("/data", "sim", "IceCube", "2011", "filtered",
                          "level2", "neutrino-generator")
     files.update({
@@ -149,8 +149,8 @@ if __name__ == "__main__":
         },
     })
 
-    # IC79 2010 datasets (only ana level 3 mu as i3, GCD from similar set still
-    #                     available on /data/sim)
+    # MC used for PS tracks IC79 2010 datasets. Only ana level 3 mu as i3.
+    # GCD is taken from similar set, which is still available on /data/sim
     files.update({
         "6308": {
             "path": os.path.join(
