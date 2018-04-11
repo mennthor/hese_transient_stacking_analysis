@@ -74,8 +74,8 @@ for name, runs in runlists.items():
 
     # Store all sources for the current sample
     sources_per_sam[name] = sources[t_mask].tolist()
-
-assert sum(map(len, sources_per_sam)) == len(sources)
+    print("  {} sources in this sample.".format(np.sum(t_mask)))
+assert sum(map(len, sources_per_sam.values())) == len(sources)
 
 with open(os.path.join(outpath, "source_list.json"), "w") as outf:
     json.dump(sources_per_sam, fp=outf, indent=2)
