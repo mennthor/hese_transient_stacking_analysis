@@ -15,10 +15,9 @@ from __future__ import print_function, division
 import os
 from glob import glob
 import datetime
-
-# pip install --user futures
 from concurrent.futures import ProcessPoolExecutor, wait
 
+from _paths import PATHS
 from myi3scripts.hese import make_healpy_map_from_HESE_scan
 
 
@@ -28,16 +27,14 @@ inpath = os.path.join("/data", "ana", "Diffuse", "HESE", "Pass2_reconstruction",
                       "reconstruction_tracks", "Run*")
 folders = sorted(glob(inpath))
 
-outpath = os.path.join("/home", "tmenne", "analysis",
-                       "hese_transient_stacking_analysis", "out",
-                       "hese_scan_maps")
+outpath = os.path.join(PATHS.local, "hese_scan_maps")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 outfiles = map(lambda name: os.path.join(outpath, name),
                map(os.path.basename, folders))
 
 icemodel = "SpiceMie"
-scan_str = "{}_nside????.i3.bz2".format(icemodel)
+scan_str = "{}_nside0008.i3.bz2".format(icemodel)
 
 # Work on multiple maps at once. If module not available, loop over all files
 N_JOBS = 20

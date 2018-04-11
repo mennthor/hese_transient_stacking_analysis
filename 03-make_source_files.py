@@ -14,10 +14,9 @@ import astropy.time as astrotime
 from skylab.datasets import Datasets
 
 
-inpath = os.path.join("/home", "tmenne", "analysis",
-                      "hese_transient_stacking_analysis", "out")
+PATHS = json.load(open("./WORK_DIRS.json"))
 
-src_path = os.path.join(inpath, "hese_scan_maps")
-runlist_path = os.path.join(inpath, "runlists")
+src_path = os.path.join(PATHS["local"], "hese_scan_maps")
+runlist_path = os.path.join(PATHS["local"], "runlists")
 
 # TODO: Load runlists and sources

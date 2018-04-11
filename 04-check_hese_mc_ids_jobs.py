@@ -7,9 +7,11 @@ Create jobfiles for the `04-check_hese_mc_ids.py`.
 from __future__ import print_function, division
 import warnings
 import os
+import json
 from glob import glob
 import numpy as np
 
+from _paths import PATHS
 from dagman import dagman
 
 
@@ -90,55 +92,61 @@ if __name__ == "__main__":
     # Job creation steering arguments
     job_creator = dagman.DAGManJobCreator(mem=1)
     job_name = "TransientHESE4yrStacking"
-    _path = os.path.join("/home", "tmenne", "analysis",
-                         "hese_transient_stacking_analysis")
-    job_dir = os.path.join(_path, "jobfiles", "check_hese_mc_ids")
-    script = os.path.join(_path, "04-check_hese_mc_ids.py")
+
+    job_dir = os.path.join(PATHS.jobs, "check_hese_mc_ids")
+    script = os.path.join("/home", "tmenne", "analysis",
+                          "hese_transient_stacking_analysis",
+                          "04-check_hese_mc_ids.py")
 
     ###########################################################################
     # Collect dataset structure
     ###########################################################################
     print("\nCollecting simulation file paths:")
-    # IC86 2012, 2013 datasets (available as i3 on final level)
-    fpath = ("/data/ana/PointSource/IC86_2012_PS/files/sim/2012/" +
-             "neutrino-generator")
-    gcd_path = "/data/sim/IceCube/2012/filtered/level2/neutrino-generator"
+    # GFU IC86 2015 dataset
+    # TODO
+
+    # IC86 2012, 2013, 2015 datasets (available as i3 on final level)
+    fpath = os.path.join("/data", "ana", "PointSource", "IC86_2012_PS", "files",
+                         "sim", "2012", "neutrino-generator")
+    gcd_path = os.path.join("/data", "sim", "IceCube", "2012", "filtered",
+                            "level2", "neutrino-generator")
     files = {
         "11029": {
             "path": os.path.join(fpath, "11029"),
-            "gcd": os.path.join(gcd_path, "11029/00000-00999/" +
+            "gcd": os.path.join(gcd_path, "11029", "00000-00999",
                                 "GeoCalibDetectorStatus_2012.56063_V1.i3.gz"),
             "legacy": False,
             },
         "11069": {
             "path": os.path.join(fpath, "11069"),
-            "gcd": os.path.join(gcd_path, "11069/00000-00999/" +
+            "gcd": os.path.join(gcd_path, "11069", "00000-00999",
                                 "GeoCalibDetectorStatus_2012.56063_V1.i3.gz"),
             "legacy": False,
             },
         "11070": {
             "path": os.path.join(fpath, "11070"),
-            "gcd": os.path.join(gcd_path, "11070/00000-00999/" +
+            "gcd": os.path.join(gcd_path, "11070", "00000-00999",
                                 "GeoCalibDetectorStatus_2012.56063_V1.i3.gz"),
             "legacy": False,
             },
         }
 
     # IC86 2011 datasets (only level 3 as i3)
-    fpath = ("/data/sim/IceCube/2011/filtered/level2/neutrino-generator")
+    fpath = os.path.join("/data", "sim", "IceCube", "2011", "filtered",
+                         "level2", "neutrino-generator")
     files.update({
         "9095": {
             "path": os.path.join(fpath, "9095"),
-            "gcd": os.path.join(fpath, "9095/00000-00999/" +
+            "gcd": os.path.join(fpath, "9095", "00000-00999",
                                 "GeoCalibDetectorStatus_IC86.55697" +
                                 "_corrected_V2.i3.gz"),
             "legacy": False,
         },
         "9366": {
             "path": os.path.join(fpath, "9366"),
-            "gcd": os.path.join(fpath, "9366/00000-00999/" +
-                                "GeoCalibDetectorStatus_IC86.55697" +
-                                "_corrected_V2.i3.gz"),
+            "gcd": os.path.join(fpath, "9366", "00000-00999/",
+                                "GeoCalibDetectorStatus_IC86.55697_" +
+                                "corrected_V2.i3.gz"),
             "legacy": False,
         },
     })
@@ -147,10 +155,12 @@ if __name__ == "__main__":
     #                     available on /data/sim)
     files.update({
         "6308": {
-            "path": "/data/ana/IC79/level3-mu/sim/6308",
-            "gcd": ("/data/sim/IceCube/2010/filtered/level2/" +
-                    "neutrino-generator/6359/00000-00999/" +
-                    "GeoCalibDetectorStatus_IC79.55380_corrected.i3.gz"),
+            "path": os.path.join(
+                "/data", "ana", "IC79", "level3-mu", "sim", "6308"),
+            "gcd": os.path.join("/data", "sim", "IceCube", "2010", "filtered",
+                                "level2", "neutrino-generator", "6359",
+                                "00000-00999", "GeoCalibDetectorStatus_" +
+                                "IC79.55380_corrected.i3.gz"),
             "legacy": True,
         }
     })
@@ -163,9 +173,7 @@ if __name__ == "__main__":
     ###########################################################################
     # Job splitting args and job output paths
     nfiles_perjob = 100
-    outpath = os.path.join("/data", "user", "tmenne",
-                           "hese_transient_stacking_analysis", "rawout",
-                           "check_hese_mc_ids")
+    outpath = os.path.join(PATHS.data, "check_hese_mc_ids")
     if os.path.isdir(outpath):
         print("")
         warnings.warn("Output folder '{}' is already ".format(outpath) +

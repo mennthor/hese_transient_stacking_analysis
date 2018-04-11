@@ -15,6 +15,8 @@ import astropy.time as astrotime
 
 from skylab.datasets import Datasets
 
+from _paths import PATHS
+
 
 def make_run_list(ev_times, ev_runids):
     """
@@ -77,9 +79,7 @@ ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012",
 gfu_tracks = Datasets["GFU"]
 gfu_sample_names = ["IC86, 2015"]
 
-outpath = os.path.join("/home", "tmenne", "analysis",
-                       "hese_transient_stacking_analysis", "out",
-                       "runlists")
+outpath = os.path.join(PATHS.local, "runlists")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 

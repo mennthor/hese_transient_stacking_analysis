@@ -7,6 +7,8 @@ Dump a list of tested time windows to load them in the analysis scripts.
 import os
 import numpy as np
 
+from _paths import PATHS
+
 
 SECINMIN = 60.
 SECINHOUR = 60. * SECINMIN
@@ -34,9 +36,7 @@ for i, dti in enumerate(np.diff(dt).ravel()):
     print("{:2d}:  {}".format(i, sec2timestr(dti)))
 
 
-outpath = os.path.join("/home", "tmenne", "analysis",
-                       "hese_transient_stacking_analysis", "out",
-                       "time_window_list")
+outpath = os.path.join(PATHS.local, "time_window_list")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 

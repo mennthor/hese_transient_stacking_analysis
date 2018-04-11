@@ -19,15 +19,12 @@ except ImportError:
     print("If you want fancy status bars: `pip install --user tqdm` ;)")
     tqdm = iter
 
+from _paths import PATHS
 from myi3scripts import arr2str
 
 
-inpath = os.path.join("/data", "user", "tmenne",
-                      "hese_transient_stacking_analysis", "rawout",
-                      "check_hese_mc_ids")
-outpath = os.path.join("/home", "tmenne", "analysis",
-                       "hese_transient_stacking_analysis", "out",
-                       "check_hese_mc_ids")
+inpath = os.path.join(PATHS.data, "check_hese_mc_ids")
+outpath = os.path.join(PATHS.local, "check_hese_mc_ids")
 if os.path.isdir(outpath):
     res = raw_input("'{}' already exists. Allow overwrites? ".format(outpath))
     if not res.lower() in ("y", "yes"):
