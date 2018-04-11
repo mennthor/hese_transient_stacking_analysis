@@ -26,7 +26,8 @@ from myi3scripts import arr2str
 inpath = os.path.join(PATHS.data, "check_hese_mc_ids")
 outpath = os.path.join(PATHS.local, "check_hese_mc_ids")
 if os.path.isdir(outpath):
-    res = raw_input("'{}' already exists. Allow overwrites? ".format(outpath))
+    res = raw_input("'{}' already exists. ".format(outpath) +
+                    "\nAllow overwrites (y/n)? ")
     if not res.lower() in ("y", "yes"):
         print("Abort. Script has done nothing.")
         sys.exit()
@@ -42,6 +43,8 @@ dataset_nums = set(map(lambda s: s.split("_")[0], file_names))
 # Combine all to a single JSON file
 print("Reading files from directory:\n  {}".format(inpath))
 print("  Found JSON files for datasets: {}".format(arr2str(dataset_nums)))
+run_ids_per_sam = {}
+event_ids_per_sam = {}
 for num in dataset_nums:
     print("Combining IDs from set '{}':".format(num))
     run_ids = []
@@ -56,12 +59,36 @@ for num in dataset_nums:
 
     assert len(run_ids) == len(event_ids)
     print("  Total events filtered: {}".format(len(run_ids)))
+    run_ids_per_sam[num] = run_ids
+    event_ids_per_sam[num] = event_ids
 
-    # Save all to compressed JSON
-    _outp = os.path.join(outpath, "{}.json.gz".format(num))
+
+# Combine to single dict for the seperate datasets
+set2num = {
+    "IC79": ["6308"],
+    "IC86_2011": ["9366", "9095", "9701"],
+    "IC86_2012": ["11029", "11069", "11070"],
+}
+
+comment = {
+    "IC79": ("IDs for MC for IC79 only. " +
+             "Sets: {}").format(arr2str(set2num["IC79"])),
+    "IC86_2011": ("IDs for MC for IC86I, 2011 only. " +
+                  "Sets: {}").format(arr2str(set2num["IC86_2011"])),
+    "IC86_2012": ("IDs for MC for PS IC86 2012-2015 and GFU 2015-2017. " +
+                  "Sets: {}").format(arr2str(set2num["IC86_2012"])),
+}
+
+for name, nums in set2num.items():
+    print("Combining IDs for sample {}.\n  {}".format(name, comment[name]))
+    out_dict = {"run_id": [], "event_id": [], "comment": comment[name]}
+    for num in nums:
+        out_dict["run_id"] += run_ids_per_sam[num]
+        out_dict["event_id"] += event_ids_per_sam[num]
+    # Save to compressed JSON
+    _outp = os.path.join(outpath, "{}.json.gz".format(name))
     with gzip.open(_outp, "wb") as outf:
-        json.dump({"event_id": event_ids, "run_id": run_ids}, outf,
-                  indent=1, separators=(",", ": "))
+        json.dump(out_dict, fp=outf, indent=2, separators=(",", ": "))
         print("  Saved to file '{}'".format(_outp))
 
 print("Done")
