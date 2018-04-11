@@ -1,5 +1,5 @@
-jobfiles
-out
+jobfiles*
+out*
 
 # Created by https://www.gitignore.io/api/osx,python
 
