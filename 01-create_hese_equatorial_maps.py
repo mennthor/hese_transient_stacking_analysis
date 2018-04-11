@@ -26,6 +26,9 @@ print("Start: {}\n".format(datetime.datetime.utcnow()))
 inpath = os.path.join("/data", "ana", "Diffuse", "HESE", "Pass2_reconstruction",
                       "reconstruction_tracks", "Run*")
 folders = sorted(glob(inpath))
+print("Found {} scan folders:".format(len(folders)))
+for folder in folders:
+    print("  {}".format(folder))
 
 outpath = os.path.join(PATHS.local, "hese_scan_maps")
 if not os.path.isdir(outpath):
