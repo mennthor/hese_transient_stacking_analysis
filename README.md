@@ -6,9 +6,15 @@ Analysis wiki: [Transient_HESE_Stacking](https://wiki.icecube.wisc.edu/index.php
 - Mail: thorben.menne@tu-dortmund.de
 - Slack: @thorben
 
-## Redo the analysis
+## Folder management
 
-Working paths are `./out/` for results and `/data/user/tmenne/hese_transient_stacking_analysis/` for larger or intermediate cluster results.
+Working paths are set automatically by `_paths.py` to:
+
+- `./<branch_name>_out/` for results
+- `./<branch_name>_jobfiles/` for jobfiles
+- `/data/user/tmenne/hese_transient_stacking_analysis/<branch_name>_rawout` for larger or intermediate cluster results.
+
+## Redo the analysis
 
 1. Clone or copy this this repository.
 2. Install additional python software dependencies with `pip install --user -e .` from within their repositories (find them in `/home/tmenne/software/`):
@@ -19,6 +25,11 @@ Working paths are `./out/` for results and `/data/user/tmenne/hese_transient_sta
     - tdepps
         + Main analysis module
         + Note: Needs `devset2` to compile the C++ backend (April 2018)
+    - gitpython
+        + External, install with `pip install --user gitpython`
+    - futures
+        + External, install with `pip install --user futures`
+    - Standard scipy, numpy stuff
 3. Executing each script here in order should rebuild all the files up to the final results.
 
 ### Note
