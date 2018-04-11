@@ -34,7 +34,6 @@ for rl_file in runlist_files:
 # Load sources up to HESE 6yr, list from:
 #   https://wiki.icecube.wisc.edu/index.php/Analysis_of_pre-public_alert_HESE/EHE_events#HESE
 # Last Run ID is 127853 from late 86V (2015) run, next from 7yr is 128290
-# glob("./Run0012[1-7]*.json.gz") + glob("./Run0011*.json.gz")
 src_files = sorted(
     glob(os.path.join(src_path, "Run0011*.json.gz")) +
     glob(os.path.join(src_path, "Run0012[0-7]*.json.gz"))
@@ -71,7 +70,6 @@ for name, runs in runlists.items():
     tmin = np.amin([astrotime.Time(r["good_tstart"]).mjd for r in runs])
     tmax = np.amax([astrotime.Time(r["good_tstop"]).mjd for r in runs])
     t_mask = (src_t >= tmin) & (src_t <= tmax)
-
     # Store all sources for the current sample
     sources_per_sam[name] = sources[t_mask].tolist()
     print("  {} sources in this sample.".format(np.sum(t_mask)))
