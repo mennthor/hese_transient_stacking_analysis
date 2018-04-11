@@ -97,6 +97,7 @@ if not os.path.isdir(outpath):
 # let's just remove the few runs here)
 ps_exclude = {key: None for key in ps_sample_names}
 ps_exclude["IC86, 2012"] = [120028, 120029, 120030]
+ps_exclude["IC86, 2014"] = [124551, 124565, 124566, 124567]
 gfu_exclude = {key: None for key in gfu_sample_names}
 gfu_exclude["IC86, 2015"] = [126289, 126290, 126291]
 
