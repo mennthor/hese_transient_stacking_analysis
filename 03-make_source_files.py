@@ -13,7 +13,7 @@ import numpy as np
 import astropy.time as astrotime
 
 from _paths import PATHS
-from skylab.datasets import Datasets
+
 
 src_path = os.path.join(PATHS.local, "hese_pass2_scan_maps")
 runlist_path = os.path.join(PATHS.local, "runlists")
