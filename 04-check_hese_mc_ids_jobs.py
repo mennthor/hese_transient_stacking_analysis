@@ -94,9 +94,7 @@ if __name__ == "__main__":
     job_name = "TransientHESE4yrStacking"
 
     job_dir = os.path.join(PATHS.jobs, "check_hese_mc_ids")
-    script = os.path.join("/home", "tmenne", "analysis",
-                          "hese_transient_stacking_analysis",
-                          "04-check_hese_mc_ids.py")
+    script = os.path.join(PATHS.repo, "04-check_hese_mc_ids.py")
 
     ###########################################################################
     # Collect dataset structure
