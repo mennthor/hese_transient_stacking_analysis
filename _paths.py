@@ -42,19 +42,17 @@ class _Paths(object):
 
 
 # Insert the current branch name to automatically switch to a new work dir
-_repo = _Repo("./")
+_repo_path = _os.path.abspath("./")
+_repo = _Repo(_repo_path)
 _BRANCH_NAME = _repo.active_branch.name
 
 _paths = {
-    "local": _os.path.join("/home", "tmenne", "analysis",
-                           "hese_transient_stacking_analysis",
-                           "out_" + _BRANCH_NAME),
+    "repo": _repo_path,
+    "local": _os.path.join(_repo_path, "out_" + _BRANCH_NAME),
     "data": _os.path.join("/data", "user", "tmenne",
                           "hese_transient_stacking_analysis",
                           "rawout_" + _BRANCH_NAME),
-    "jobs": _os.path.join("/home", "tmenne", "analysis",
-                          "hese_transient_stacking_analysis",
-                          "jobfiles_" + _BRANCH_NAME),
+    "jobs": _os.path.join(_repo_path, "jobfiles_" + _BRANCH_NAME),
 }
 
 PATHS = _Paths(_paths)
