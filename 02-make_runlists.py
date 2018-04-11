@@ -16,9 +16,10 @@ import astropy.time as astrotime
 from skylab.datasets import Datasets
 
 from _paths import PATHS
+from myi3scripts import arr2str
 
 
-def make_run_list(ev_times, ev_runids):
+def make_run_list(ev_times, ev_runids, exclude_runs=None):
     """
     Make a run list from given event times and run IDs and a list of included
     runs. Run start, stop are estimated from first and last event time in each
@@ -30,6 +31,9 @@ def make_run_list(ev_times, ev_runids):
         Event times in MJD days from the used data sample.
     ev_runids : array-like, shape (nevts,)
         Event run IDs from the used data sample.
+    exclude_runs : array-like or None, optional
+        Run IDs to exclude, for example when samples overlap.
+        (default: ``None``)
 
     Returns
     -------
@@ -50,6 +54,11 @@ def make_run_list(ev_times, ev_runids):
     # If selected runs were empty on final level, they are not considered here
     used_run_ids = np.unique(ev_runids).astype(int)
     ev_runids = ev_runids.astype(int)
+
+    if exclude_runs is not None:
+        used_run_ids = filter(lambda runid: runid not in exclude_runs,
+                              used_run_ids)
+        print("  Exluded runs: {}".format(arr2str(exclude_runs, fmt="{:d}")))
 
     run_list = []
     livetimes = np.zeros(len(used_run_ids), dtype=float)
@@ -83,13 +92,21 @@ outpath = os.path.join(PATHS.local, "runlists")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
+# Exclude some runs that are overlapping in the samples. If we don't then
+# sources get matched to multiple samples (which could be manually avoided, but
+# let's just remove the few runs here)
+ps_exclude = {key: None for key in ps_sample_names}
+ps_exclude["IC86, 2012"] = [120028, 120029, 120030]
+gfu_exclude = {key: None for key in gfu_sample_names}
+gfu_exclude["IC86, 2015"] = [126289, 126290, 126291]
+
 for name in ps_sample_names:
     print("Making runlist for {}".format(name))
     exp_file = ps_tracks.files(name)[0]
     print("  Using PS track sample from skylab at:\n  {}".format(exp_file))
     exp = ps_tracks.load(exp_file)
     ev_times, ev_runids = exp["time"], exp["Run"]
-    run_list = make_run_list(ev_times, ev_runids)
+    run_list = make_run_list(ev_times, ev_runids, ps_exclude[name])
     fname = name.replace(", ", "_") + ".json"
     with open(os.path.join(outpath, fname), "w") as outf:
         json.dump(run_list, fp=outf, indent=2)
@@ -101,7 +118,7 @@ for name in gfu_sample_names:
     print("  Using GFU track sample from skylab at:\n  {}".format(exp_file))
     exp = gfu_tracks.load(exp_file)
     ev_times, ev_runids = exp["time"], exp["Run"]
-    run_list = make_run_list(ev_times, ev_runids)
+    run_list = make_run_list(ev_times, ev_runids, gfu_exclude[name])
     fname = name.replace(", ", "_") + ".json"
     with open(os.path.join(outpath, fname), "w") as outf:
         json.dump(run_list, fp=outf, indent=2)
