@@ -40,7 +40,7 @@ icemodel = "SpiceMie"
 scan_str = "{}_nside0008.i3.bz2".format(icemodel)
 
 # Work on multiple maps at once. If module not available, loop over all files
-N_JOBS = 20
+N_JOBS = len(folders)
 with ProcessPoolExecutor(max_workers=N_JOBS) as executor:
     processes = []
     for infolder, outfile in zip(folders, outfiles):
