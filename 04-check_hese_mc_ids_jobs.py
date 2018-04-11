@@ -7,7 +7,6 @@ Create jobfiles for the `04-check_hese_mc_ids.py`.
 from __future__ import print_function, division
 import warnings
 import os
-import json
 from glob import glob
 import numpy as np
 
@@ -97,7 +96,8 @@ if __name__ == "__main__":
     script = os.path.join(PATHS.repo, "04-check_hese_mc_ids.py")
 
     ###########################################################################
-    # Collect dataset structure
+    # Collect dataset structure. Datset info on:
+    #   https://grid.icecube.wisc.edu/simulation/dataset/<number>
     ###########################################################################
     print("\nCollecting simulation file paths:")
     # MC used for:
@@ -132,6 +132,7 @@ if __name__ == "__main__":
     # MC used for PS tracks IC86 2011 datasets (only level 3 as i3)
     fpath = os.path.join("/data", "sim", "IceCube", "2011", "filtered",
                          "level2", "neutrino-generator")
+    # This is stated on Stefan's wiki page
     files.update({
         "9095": {
             "path": os.path.join(fpath, "9095"),
@@ -140,11 +141,12 @@ if __name__ == "__main__":
                                 "_corrected_V2.i3.gz"),
             "legacy": False,
         },
-        "9366": {
-            "path": os.path.join(fpath, "9366"),
-            "gcd": os.path.join(fpath, "9366", "00000-00999/",
-                                "GeoCalibDetectorStatus_IC86.55697_" +
-                                "corrected_V2.i3.gz"),
+        # But these are the indices included in the final sample...
+        "9701": {
+            "path": os.path.join(fpath, "9701"),
+            "gcd": os.path.join(fpath, "9701", "00000-00999/",
+                                "GeoCalibDetectorStatus_IC86.55697" +
+                                "_corrected_V2.i3.gz"),
             "legacy": False,
         },
     })
