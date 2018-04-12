@@ -82,44 +82,42 @@ def make_run_list(ev_times, ev_runids, exclude_runs=None):
 # Load PS track and GFU data from skylab as record arrays for the 6 years of
 # HESE sources that are analysed here
 ps_tracks = Datasets["PointSourceTracks"]
-ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012",
-                   "IC86, 2013", "IC86, 2014"]
-
+ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012-2014"]
 gfu_tracks = Datasets["GFU"]
 gfu_sample_names = ["IC86, 2015"]
+all_sample_names = sorted(ps_sample_names + gfu_sample_names)
+
+# Exclude some runs that are overlapping in the samples. If we don't then
+# sources get matched to multiple samples (which could be manually avoided, but
+# let's just remove the few runs here)
+exclude = {name: None for name in all_sample_names}
+exclude["IC86, 2012-2014"] = [120028, 120029, 120030]
+exclude["IC86, 2015"] = [126289, 126290, 126291]
 
 outpath = os.path.join(PATHS.local, "runlists")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
-# Exclude some runs that are overlapping in the samples. If we don't then
-# sources get matched to multiple samples (which could be manually avoided, but
-# let's just remove the few runs here)
-ps_exclude = {key: None for key in ps_sample_names}
-ps_exclude["IC86, 2012"] = [120028, 120029, 120030]
-gfu_exclude = {key: None for key in gfu_sample_names}
-gfu_exclude["IC86, 2015"] = [126289, 126290, 126291]
-
-for name in ps_sample_names:
+for name in all_sample_names:
     print("Making runlist for {}".format(name))
-    exp_file = ps_tracks.files(name)[0]
-    print("  Using PS track sample from skylab at:\n  {}".format(exp_file))
-    exp = ps_tracks.load(exp_file)
+    if name in ps_sample_names:
+        tracks = ps_tracks
+    else:
+        tracks = gfu_tracks
+
+    exp_files = tracks.files(name)[0]
+    if not isinstance(exp_files, list):
+        exp_files = [exp_files]
+
+    # Combine to single dataset if detector config is the same
+    exp = np.concatenate([tracks.load(fi) for fi in exp_files])
+    print("  Loaded {} track sample from skylab:\n    {}".format(
+        "PS" if name in ps_sample_names else "GFU",
+        arr2str(exp_files, sep="\n    ")))
+
     ev_times, ev_runids = exp["time"], exp["Run"]
-    run_list = make_run_list(ev_times, ev_runids, ps_exclude[name])
+    run_list = make_run_list(ev_times, ev_runids, exclude[name])
     fname = name.replace(", ", "_") + ".json"
     with open(os.path.join(outpath, fname), "w") as outf:
         json.dump(run_list, fp=outf, indent=2)
-        print("  Saved to:\n  {}".format(os.path.join(outpath, fname)))
-
-for name in gfu_sample_names:
-    print("Making runlist for {}".format(name))
-    exp_file = gfu_tracks.files(name)[0]
-    print("  Using GFU track sample from skylab at:\n  {}".format(exp_file))
-    exp = gfu_tracks.load(exp_file)
-    ev_times, ev_runids = exp["time"], exp["Run"]
-    run_list = make_run_list(ev_times, ev_runids, gfu_exclude[name])
-    fname = name.replace(", ", "_") + ".json"
-    with open(os.path.join(outpath, fname), "w") as outf:
-        json.dump(run_list, fp=outf, indent=2)
-        print("  Saved to:\n  {}".format(os.path.join(outpath, fname)))
+        print("  Saved to:\n    {}".format(os.path.join(outpath, fname)))
