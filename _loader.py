@@ -129,13 +129,110 @@ def settings_loader():
     return
 
 
-def off_data_loader():
-    return
+def _data_loader(names, folder):
+    """
+    Outsourced some common data loader code.
+
+    Parameters
+    ----------
+    names : list of str or None or 'all', optional
+        Simply piped through from the explicit loaders.
+    folder : string
+        Folder name from where to load the ``npy``, relative to ``_PATHS.data``.
+
+    Returns
+    -------
+    data : dict
+        See explicit loader returns
+    """
+    data_path = _os.path.join(_PATHS.data, folder)
+    data_files = sorted(_glob(_os.path.join(data_path, "*.npy")))
+    data_names = map(lambda s: _os.path.splitext(_os.path.basename(s))[0],
+                     data_files)
+
+    if names is None:
+        return data_names
+    else:
+        if names == "all":
+            names = data_names
+        elif not isinstance(names, list):
+            names = [names]
+
+    data = {}
+    _info = folder.split("_")[-1] if folder.startswith("data") else "MC"
+    for name in names:
+        idx = data_names.index(name)
+        _fname = data_files[idx]
+        print("Load {} data for sample {} from:\n  {}".format(_info, name,
+                                                              _fname))
+        data[name] = _np.load(_fname)
+
+    return data
 
 
-def on_data_loader():
-    return
+def off_data_loader(names=None):
+    """
+    Parameters
+    ----------
+    names : list of str or None or 'all', optional
+        Name(s) of the datasets(s) to load. If ``None`` returns a list of all
+        possible names. If ``'all'``, returns all available runlists.
+        (default: ``None``)
+
+    Returns
+    -------
+    offtime_data : dict or list
+        Dict with name(s) as key(s) and the offtime data record array(s) as
+        value(s). If ``names`` was ``None``, returns a list of possible input
+        names. If ``names`` was ``'all'`` returns all available data array(s)
+        the dict.
+    """
+    return _data_loader(names, folder="data_offtime")
 
 
-def mc_loader():
+def on_data_loader(names=None):
+    """
+    Parameters
+    ----------
+    names : list of str or None or 'all', optional
+        Name(s) of the datasets(s) to load. If ``None`` returns a list of all
+        possible names. If ``'all'``, returns all available runlists.
+        (default: ``None``)
+
+    Returns
+    -------
+    ontime_data : dict or list
+        Dict with name(s) as key(s) and the ontime data record array(s) as
+        value(s). If ``names`` was ``None``, returns a list of possible input
+        names. If ``names`` was ``'all'`` returns all available data array(s) in
+        the dict.
+    """
+    return _data_loader(names, folder="data_ontime")
+
+
+def mc_loader(names=None):
+    """
+    Parameters
+    ----------
+    names : list of str or None or 'all', optional
+        Name(s) of the datasets(s) to load. If ``None`` returns a list of all
+        possible names. If ``'all'``, returns all available runlists.
+        (default: ``None``)
+
+    Returns
+    -------
+    mc : dict or list
+        Dict with name(s) as key(s) and the MC record array(s) as value(s). If
+        ``names`` was ``None``, returns a list of possible input names. If
+        ``names`` was ``'all'`` returns all available MC array(s) in the dict.
+    """
+    return _data_loader(names, folder="mc_no_hese")
+
+
+def load_ana_set(names=None, time_window_idx=None):
+    """
+    Loads all the data neccessary to build a whole analysis.
+    """
+    valid_names = ["IC79", "IC86_2011", "IC86_2012-2014", "IC86_2015"]
+    # TODO: Load matching samples
     return
