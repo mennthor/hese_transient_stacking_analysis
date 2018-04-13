@@ -15,13 +15,13 @@ from myi3scripts import arr2str as _arr2str
 from _paths import PATHS as _PATHS
 
 
-def timewindow_loader(idx=None):
+def time_window_loader(idx='all'):
     """
     Load time window information.
 
     Parameters
     ----------
-    idx : array-like or int or None
+    idx : array-like or int or 'all'
         Which time window to load. If ``None`` all are loaded.
 
     Returns
@@ -33,7 +33,7 @@ def timewindow_loader(idx=None):
                            "time_window_list.txt")
     dt0, dt1 = _np.loadtxt(_fname, unpack=True, comments="#")
     print("Loaded time window list from:\n  {}".format(_fname))
-    if idx is None:
+    if idx == 'all':
         return dt0, dt1
     else:
         idx = _np.atleast_1d(idx)
