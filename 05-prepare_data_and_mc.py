@@ -1,10 +1,13 @@
 # coding: utf-8
 
 """
-1) Split analysis datasets into off and ontime time data for trial handling.
+1) Data events outside the earliest / latest runs per sample are removed,
+   because they don't contribute anyway here, because here the runlists were
+   constructed non-overlapping.
+2) Split analysis datasets into off and ontime time data for trial handling.
    The largest tested source window is split off as on-time data, the rest is
    kept as off-data to build models and injectors from.
-2) Remove HESE like events identified in `04-check_hese_mc_ids` from the
+3) Remove HESE like events identified in `04-check_hese_mc_ids` from the
    simulation files.
 """
 
@@ -16,8 +19,9 @@ import numpy as np
 from skylab.datasets import Datasets
 
 from _paths import PATHS
-from _loader import source_list_loader, time_window_loader
+from _loader import source_list_loader, time_window_loader, runlist_loader
 from myi3scripts import arr2str
+from tdepps.utils import create_run_dict
 
 
 def remove_hese_from_mc(mc, heseids):
@@ -115,6 +119,9 @@ sources = source_list_loader("all")
 _dts0, _dts1 = time_window_loader("all")
 dt0_max, dt1_max = np.amin(_dts0), np.amax(_dts1)
 
+# Load runlists
+runlists = runlist_loader("all")
+
 # Load needed data and MC from PS track and add in one year of GFU sample
 ps_tracks = Datasets["PointSourceTracks"]
 ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012-2014"]
@@ -150,8 +157,18 @@ for name in all_sample_names:
     print("    Data:\n      {}".format(_info))
     print("    MC  :\n      {}".format(mc_file))
 
-    # Split data in on and off parts with the largest time window
     name = name.replace(", ", "_")
+
+    # Remove events before first and after last run per sample
+    rundict = create_run_dict(runlists[name])
+    first_run = np.amin(rundict["good_start_mjd"])
+    last_run = np.amax(rundict["good_stop_mjd"])
+    is_inside_runs = (exp["time"] >= first_run) & (exp["time"] <= last_run)
+    print("  Removing {} / {} events outside runs.".format(
+        np.sum(~is_inside_runs), len(exp)))
+    exp = exp[is_inside_runs]
+
+    # Split data in on and off parts with the largest time window
     is_offtime = split_data_on_off(exp["time"], sources[name], dt0_max, dt1_max)
 
     # Remove HESE like events from MC
