@@ -15,29 +15,36 @@ from myi3scripts import arr2str as _arr2str
 from _paths import PATHS as _PATHS
 
 
-def time_window_loader(idx='all'):
+def time_window_loader(idx=None):
     """
     Load time window information.
 
     Parameters
     ----------
-    idx : array-like or int or 'all'
-        Which time window to load. If ``None`` all are loaded.
+    idx : array-like or int or 'all' or ``None``, optional
+        Which time window to load. If ``'all'``, all are loaded, if ``None`` a
+        list of valid indices is returned, sorted ascending to the largest time
+        window. (default: ``None``)
 
     Returns
     -------
     dt0, dt1 : array-like
-        Left and right time window edges in seconds.
+        Left and right time window edges in seconds. If `ìdx``was ``None`` an
+        array of valid indices sorted ascending by total time window length is
+        returned.
     """
     _fname = _os.path.join(_PATHS.local, "time_window_list",
                            "time_window_list.txt")
     dt0, dt1 = _np.loadtxt(_fname, unpack=True, comments="#")
     print("Loaded time window list from:\n  {}".format(_fname))
+    if idx is None:
+        idx = _np.argsort(dt1 - dt0)
+        return _np.arange(len(idx))[idx]
     if idx == 'all':
         return dt0, dt1
     else:
         idx = _np.atleast_1d(idx)
-        print("Returning indices: {}".format(_arr2str(idx)))
+        print("  Returning indices: {}".format(_arr2str(idx)))
         return dt0[idx], dt1[idx]
 
 
@@ -73,7 +80,7 @@ def source_list_loader(names=None):
             names = [names]
 
     print("Loaded source list from:\n  {}".format(source_file))
-    print("Returning sources for sample(s): {}".format(_arr2str(names)))
+    print("  Returning sources for sample(s): {}".format(_arr2str(names)))
     return {name: sources[name] for name in names}
 
 
