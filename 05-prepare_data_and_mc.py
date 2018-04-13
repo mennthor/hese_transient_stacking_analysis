@@ -34,7 +34,7 @@ def remove_hese_from_mc(mc, heseids):
 
     Returns
     -------
-    is_hese_mask : array-like, shape (len(mc),)
+    is_hese_like : array-like, shape (len(mc),)
         Mask: ``True`` if for each event in ``mc`` that is HESE like.
     """
     # Make combined IDs to easily match against HESE IDs with `np.isin`
@@ -51,13 +51,13 @@ def remove_hese_from_mc(mc, heseids):
     assert np.all(combined_heseids > factor)
 
     # Check which MC event is tagged as HESE like
-    is_hese_mask = np.isin(combined_mcids, combined_heseids)
-    print("  Found {} / {} HESE like events in MC".format(np.sum(is_hese_mask),
+    is_hese_like = np.isin(combined_mcids, combined_heseids)
+    print("  Found {} / {} HESE like events in MC".format(np.sum(is_hese_like),
                                                           len(mc)))
-    return is_hese_mask
+    return is_hese_like
 
 
-def split_data_on_off(ev_t, dt0, dt1):
+def split_data_on_off(ev_t, src_dicts, dt0, dt1):
     """
     Returns a mask to split experimental data in on and off source regions.
 
@@ -65,62 +65,42 @@ def split_data_on_off(ev_t, dt0, dt1):
     ----------
     ev_t : array-like
         Experimental times in MJD days.
-    dt0 : array-like
-        Absolute left borders of time window for each source in MJD days.
-    dt1 : array-like
-        Absolute right borders of time window for each source in MJD days.
-
-    Returns
-    -------
-    is_off_data : array-like, shape (len(exp),)
-        Mask: ``True`` when event in ``exp`` is in the off data region.
-    """
-    # Broadcast to test every source at once
-    ev_t = np.atleast_1d(ev_t)[None, :]
-    dt0, dt1 = np.atleast_1d(dt0)[:, None], np.atleast_1d(dt1)[:, None]
-
-    is_on_data = (ev_t >= dt0) & (ev_t <= dt1)
-    is_off_data = np.logical_not(np.any(is_on_data, axis=0))
-    assert np.sum(np.any(is_on_data, axis=0)) + np.sum(is_off_data) == (
-        ev_t.shape[1])
-
-    print("  On time events: {} / {}".format(np.sum(is_on_data), ev_t.shape[1]))
-    for i, ontime in enumerate(is_on_data):
-        print("  - Source {}: {} on time".format(i, np.sum(ontime)))
-    return is_off_data
-
-
-def make_src_dts_from_dict_list(dict_list, dt0, dt1):
-    """
-    Makes arrays ``dt0``, ``dt1`` with start, stop of each sources time window
-    in MJD days to split off data.
-
-    Parameters
-    ----------
-    dict_list : list of dict
+    src_dicts : list of dicts
         One dict per source, must have key ``'mjd'``.
     dt0 : float
-        Left border of time window for all sources in seconds relative to the
+        Left border of ontime window for all sources in seconds relative to the
         source times, should be negative for earlier times.
     dt1 : float
-        Right border of time window for all sources in seconds relative to the
+        Right border of ontime window for all sources in seconds relative to the
         source times.
 
     Returns
     -------
-    dt0, dt1 : array-like
-        Left and right borders in absolute MJD for each source from the list.
+    offtime : array-like, shape (len(exp),)
+        Mask: ``True`` when event in ``exp`` is in the off data region.
     """
     SECINDAY = 24. * 60. * 60.
-    dt0 /= SECINDAY
-    dt1 /= SECINDAY
+    nevts, nsrcs = len(ev_t), len(src_dicts)
 
-    dt0_mjd, dt1_mjd = [], []
-    for src in dict_list:
-        dt0_mjd.append(src["mjd"] + dt0)
-        dt1_mjd.append(src["mjd"] + dt1)
+    dt0_mjd = np.empty(nsrcs, dtype=float)
+    dt1_mjd = np.empty(nsrcs, dtype=float)
+    for i, src in enumerate(src_dicts):
+        dt0_mjd[i] = src["mjd"] + dt0 / SECINDAY
+        dt1_mjd[i] = src["mjd"] + dt1 / SECINDAY
 
-    return np.array(dt0_mjd), np.array(dt1_mjd)
+    # Broadcast to test every source at once
+    ev_t = np.atleast_1d(ev_t)[None, :]
+    dt0_mjd, dt1_mjd = dt0_mjd[:, None], dt1_mjd[:, None]
+
+    ontime = np.logical_and(ev_t >= dt0_mjd, ev_t <= dt1_mjd)
+    offtime = np.logical_not(np.any(ontime, axis=0))
+    assert np.sum(np.any(ontime, axis=0)) + np.sum(offtime) == nevts
+
+    print("  Ontime window duration: {:.2f} sec".format(dt1 - dt0))
+    print("  Ontime events: {} / {}".format(np.sum(ontime), nevts))
+    for i, on_per_src in enumerate(ontime):
+        print("  - Source {}: {} on time".format(i, np.sum(on_per_src)))
+    return offtime
 
 
 off_data_outpath = os.path.join(PATHS.data, "data_offtime")
@@ -130,10 +110,10 @@ for _p in [off_data_outpath, on_data_outpath, mc_outpath]:
     if not os.path.isdir(_p):
         os.makedirs(_p)
 
-# Load sources and time windows
+# Load sources and lowest/highest lower/upper time window edge
 sources = source_list_loader("all")
-_dt0, _dt1 = time_window_loader("all")
-dt0_max, dt1_max = np.amax(_dt0), np.amax(_dt1)
+_dts0, _dts1 = time_window_loader("all")
+dt0_max, dt1_max = np.amin(_dts0), np.amax(_dts1)
 
 # Load needed data and MC from PS track and add in one year of GFU sample
 ps_tracks = Datasets["PointSourceTracks"]
@@ -170,11 +150,9 @@ for name in all_sample_names:
     print("    Data:\n      {}".format(_info))
     print("    MC  :\n      {}".format(mc_file))
 
-    # Split data in on and off parts
+    # Split data in on and off parts with the largest time window
     name = name.replace(", ", "_")
-    dt0_mjd, dt1_mjd = make_src_dts_from_dict_list(sources[name],
-                                                   dt0_max, dt1_max)
-    is_off_data = split_data_on_off(exp["time"], dt0_mjd, dt1_mjd)
+    is_offtime = split_data_on_off(exp["time"], sources[name], dt0_max, dt1_max)
 
     # Remove HESE like events from MC
     _fname = os.path.join(PATHS.local, "check_hese_mc_ids",
@@ -182,11 +160,11 @@ for name in all_sample_names:
     with gzip.open(_fname) as _file:
         heseids = json.load(_file)
         print("  Loaded HESE like MC IDs from :\n    {}".format(_fname))
-    is_hese_mask = remove_hese_from_mc(mc, heseids)
+    is_hese_like = remove_hese_from_mc(mc, heseids)
 
     # Save, also in npy format
     print("  Saving on, off and non-HESE like MCs at:")
-    out_arrs = [exp[is_off_data], exp[~is_off_data], mc[~is_hese_mask]]
+    out_arrs = [exp[is_offtime], exp[~is_offtime], mc[~is_hese_like]]
     for out_path, arr in zip(out_paths, out_arrs):
         _fname = os.path.join(out_path, name + ".npy")
         np.save(file=_fname, arr=arr)
