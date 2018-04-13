@@ -106,14 +106,12 @@ for name in all_sample_names:
         tracks = gfu_tracks
 
     exp_files = tracks.files(name)[0]
-    if not isinstance(exp_files, list):
-        exp_files = [exp_files]
+    exp = tracks.load(exp_files)
 
-    # Combine to single dataset if detector config is the same
-    exp = np.concatenate([tracks.load(fi) for fi in exp_files])
+    _info = arr2str(exp_files if isinstance(exp_files, list) else [exp_files],
+                    sep="\n    ")
     print("  Loaded {} track sample from skylab:\n    {}".format(
-        "PS" if name in ps_sample_names else "GFU",
-        arr2str(exp_files, sep="\n    ")))
+        "PS" if name in ps_sample_names else "GFU", _info))
 
     ev_times, ev_runids = exp["time"], exp["Run"]
     run_list = make_run_list(ev_times, ev_runids, exclude[name])
