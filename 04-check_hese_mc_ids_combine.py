@@ -67,7 +67,7 @@ for num in dataset_nums:
 set2num = {
     "IC79": ["6308"],
     "IC86_2011": ["9366", "9095", "9701"],
-    "IC86_2012": ["11029", "11069", "11070"],
+    "IC86_2012-2015": ["11029", "11069", "11070"],
 }
 
 comment = {
@@ -75,8 +75,8 @@ comment = {
              "Sets: {}").format(arr2str(set2num["IC79"])),
     "IC86_2011": ("IDs for MC for IC86I, 2011 only. " +
                   "Sets: {}").format(arr2str(set2num["IC86_2011"])),
-    "IC86_2012": ("IDs for MC for PS IC86 2012-2015 and GFU 2015-2017. " +
-                  "Sets: {}").format(arr2str(set2num["IC86_2012"])),
+    "IC86_2012-2015": ("IDs for MC for PS IC86 2012-2015 and GFU 2015. " +
+                       "Sets: {}").format(arr2str(set2num["IC86_2012-2015"]))
 }
 
 for name, nums in set2num.items():
@@ -89,6 +89,6 @@ for name, nums in set2num.items():
     _outp = os.path.join(outpath, "{}.json.gz".format(name))
     with gzip.open(_outp, "wb") as outf:
         json.dump(out_dict, fp=outf, indent=2, separators=(",", ": "))
-        print("  Saved to file '{}'".format(_outp))
+        print("  Saved to file:\n    '{}'".format(_outp))
 
 print("Done")

@@ -43,7 +43,7 @@ if not os.path.isdir(outpath):
 # Saving with millisecond precision is enough
 delimiter = " "
 header = "#{:>11s}{}{:>12s}".format("dt0 [s]", delimiter, "dt1 [s]")
-np.savetxt(X=dt, fname=os.path.join(outpath, "time_windows.txt"),
+np.savetxt(X=dt, fname=os.path.join(outpath, "time_window_list.txt"),
            comments="", header=header, fmt="%+12.3f", delimiter=delimiter)
 
 print("Saved time windows to:\n{}".format(outpath))

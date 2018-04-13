@@ -13,6 +13,7 @@ import numpy as np
 import astropy.time as astrotime
 
 from _paths import PATHS
+from _loader import runlist_loader
 
 
 src_path = os.path.join(PATHS.local, "hese_scan_maps")
@@ -23,13 +24,7 @@ if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
 # Load runlists
-runlist_files = sorted(glob(os.path.join(runlist_path, "*")))
-runlists = {}
-for rl_file in runlist_files:
-    name = os.path.splitext(os.path.basename(rl_file))[0]
-    with open(rl_file) as _f:
-        print("Load runlist for sample {} from\n  {}".format(name, rl_file))
-        runlists[name] = json.load(_f)
+runlists = runlist_loader("all")
 
 # Load sources up to HESE 6yr, list from:
 #   https://wiki.icecube.wisc.edu/index.php/Analysis_of_pre-public_alert_HESE/EHE_events#HESE
@@ -52,7 +47,8 @@ for src_file in src_files:
         # Also store the path to the original file which contains the skymap
         src_i["map_path"] = src_file
         sources.append(src_i)
-        print("Loaded HESE source from run {}".format(src_i["run_id"]))
+        print("Loaded HESE source from run {}:\n  {}".format(
+            src_i["run_id"], src_file))
 
 print("Number of considered sources: {}".format(len(src_files)))
 sources = np.array(sources)
