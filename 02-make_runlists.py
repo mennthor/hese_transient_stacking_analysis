@@ -74,7 +74,7 @@ def make_run_list(ev_times, ev_runids, exclude_runs=None):
                         "good_tstop": tstop})
 
     print("  Livetime: {:.3f} days".format(np.sum(livetimes)))
-    print("  Had {} / {} runs with zero livetime.".format(
+    print("  Had {} / {} runs with non-zero livetime.".format(
         np.sum(livetimes > 0), len(used_run_ids)))
     return run_list
 
