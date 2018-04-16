@@ -1,0 +1,12 @@
+numpy
+scipy
+healpy
+matplotlib
+
+tqdm
+futures
+gitpython
+
+/home/tmenne/software/tdepps
+/home/tmenne/software/myi3scripts
+/home/tmenne/software/dagman

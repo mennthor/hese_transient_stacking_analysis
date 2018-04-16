@@ -69,12 +69,12 @@ def make_run_list(ev_times, ev_runids, exclude_runs=None):
         tstart = astrotime.Time(np.amin(ev_t), format="mjd").iso
         tstop = astrotime.Time(np.amax(ev_t), format="mjd").iso
         livetimes[i] = np.amax(ev_t) - np.amin(ev_t)
-        # Append run dict to run list
-        run_list.append(
-            {"run": runid, "good_tstart": tstart, "good_tstop": tstop})
+        # Append valid run dict to run list
+        run_list.append({"run": runid, "good_tstart": tstart,
+                        "good_tstop": tstop})
 
-    print("  Livetime: {:.3f} days".format(np.sum(livetimes[livetimes > 0])))
-    print("  Selected {} / {} runs with livetime > 0.".format(
+    print("  Livetime: {:.3f} days".format(np.sum(livetimes)))
+    print("  Had {} / {} runs with non-zero livetime.".format(
         np.sum(livetimes > 0), len(used_run_ids)))
     return run_list
 

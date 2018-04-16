@@ -17,19 +17,7 @@ Working paths are set automatically by `_paths.py` to:
 ## Redo the analysis
 
 1. Clone or copy this this repository.
-2. Install additional python software dependencies with `pip install --user -e .` from within their repositories (find them in `/home/tmenne/software/`):
-    - dagman
-        + Tool to create dagman jobfiles
-    - myi3scripts
-        + Collection of helper functions
-    - tdepps
-        + Main analysis module
-        + Note: Needs `devset2` to compile the C++ backend (April 2018)
-    - gitpython
-        + External, install with `pip install --user gitpython`
-    - futures
-        + External, install with `pip install --user futures`
-    - Standard scipy, numpy stuff
+2. Install additional python software dependencies with `pip install --user -r py2requirements.txt` , which grabs some packages from pypi and custom packages from `/home/tmenne/software/`.
 3. Executing each script here in order should rebuild all the files up to the final results.
 
 ### Note
