@@ -102,72 +102,29 @@ def runlist_loader(names=None):
         was ``None``, returns a list of possible input names. If ``names`` was
         ``'all'`` returns all available runlists in the dict.
     """
-    runlist_path = _os.path.join(_PATHS.local, "runlists")
-    runlist_files = sorted(_glob(_os.path.join(runlist_path, "*")))
-    runlist_names = map(lambda s: _os.path.splitext(_os.path.basename(s))[0],
-                        runlist_files)
-    if names is None:
-        return runlist_names
-    else:
-        if names == "all":
-            names = runlist_names
-        elif not isinstance(names, list):
-            names = [names]
-
-    runlists = {}
-    for name in names:
-        idx = runlist_names.index(name)
-        _fname = runlist_files[idx]
-        with open(_fname) as _file:
-            print("Load runlist for sample {} from:\n  {}".format(name, _fname))
-            runlists[name] = _json.load(_file)
-
-    return runlists
+    folder = _os.path.join(_PATHS.local, "runlists")
+    return _common_loader(names, folder=folder, info="runlist")
 
 
-def settings_loader():
-    return
-
-
-def _data_loader(names, folder):
+def settings_loader(names=None):
     """
-    Outsourced some common data loader code.
-
     Parameters
     ----------
     names : list of str or None or 'all', optional
-        Simply piped through from the explicit loaders.
-    folder : string
-        Folder name from where to load the ``npy``, relative to ``_PATHS.data``.
+        Name(s) of the datasets(s) to load. If ``None`` returns a list of all
+        possible names. If ``'all'``, returns all available runlists.
+        (default: ``None``)
 
     Returns
     -------
-    data : dict
-        See explicit loader returns
+    offtime_data : dict or list
+        Dict with name(s) as key(s) and the offtime data record array(s) as
+        value(s). If ``names`` was ``None``, returns a list of possible input
+        names. If ``names`` was ``'all'`` returns all available data array(s)
+        the dict.
     """
-    data_path = _os.path.join(_PATHS.data, folder)
-    data_files = sorted(_glob(_os.path.join(data_path, "*.npy")))
-    data_names = map(lambda s: _os.path.splitext(_os.path.basename(s))[0],
-                     data_files)
-
-    if names is None:
-        return data_names
-    else:
-        if names == "all":
-            names = data_names
-        elif not isinstance(names, list):
-            names = [names]
-
-    data = {}
-    _info = folder.split("_")[-1] if folder.startswith("data") else "MC"
-    for name in names:
-        idx = data_names.index(name)
-        _fname = data_files[idx]
-        print("Load {} data for sample {} from:\n  {}".format(_info, name,
-                                                              _fname))
-        data[name] = _np.load(_fname)
-
-    return data
+    folder = _os.path.join(_PATHS.local, "settings")
+    return _common_loader(names, folder=folder, info="settings")
 
 
 def off_data_loader(names=None):
@@ -187,7 +144,8 @@ def off_data_loader(names=None):
         names. If ``names`` was ``'all'`` returns all available data array(s)
         the dict.
     """
-    return _data_loader(names, folder="data_offtime")
+    folder = _os.path.join(_PATHS.data, "data_offtime")
+    return _common_loader(names, folder=folder, info="offtime data")
 
 
 def on_data_loader(names=None):
@@ -207,7 +165,8 @@ def on_data_loader(names=None):
         names. If ``names`` was ``'all'`` returns all available data array(s) in
         the dict.
     """
-    return _data_loader(names, folder="data_ontime")
+    folder = _os.path.join(_PATHS.data, "data_ontime")
+    return _common_loader(names, folder=folder, info="ontime data")
 
 
 def mc_loader(names=None):
@@ -226,13 +185,52 @@ def mc_loader(names=None):
         ``names`` was ``None``, returns a list of possible input names. If
         ``names`` was ``'all'`` returns all available MC array(s) in the dict.
     """
-    return _data_loader(names, folder="mc_no_hese")
+    folder = _os.path.join(_PATHS.data, "mc_no_hese")
+    return _common_loader(names, folder=folder, info="MC")
 
 
-def load_ana_set(names=None, time_window_idx=None):
+def _common_loader(names, folder, info):
     """
-    Loads all the data neccessary to build a whole analysis.
+    Outsourced some common loader code.
+
+    Parameters
+    ----------
+    names : list of str, None or 'all'
+        See explicit loaders.
+    folder : string
+        Full path to folder from where to load the data.
+    info : str
+        Info for print.
+
+    Returns
+    -------
+    data : dict
+        See explicit loader returns.
     """
-    valid_names = ["IC79", "IC86_2011", "IC86_2012-2014", "IC86_2015"]
-    # TODO: Load matching samples
-    return
+    files = sorted(_glob(_os.path.join(folder, "*")))
+    file_names = map(lambda s: _os.path.splitext(_os.path.basename(s))[0],
+                     files)
+
+    if names is None:
+        return file_names
+    else:
+        if names == "all":
+            names = file_names
+        elif not isinstance(names, list):
+            names = [names]
+
+    data = {}
+    for name in names:
+        idx = file_names.index(name)
+        fname = files[idx]
+        print("Load {} for sample {} from:\n  {}".format(info, name, fname))
+        ext = _os.path.splitext(fname)[1]
+        if ext == ".npy":
+            data[name] = _np.load(fname)
+        elif ext == ".json":
+            with open(fname) as json_file:
+                data[name] = _json.load(json_file)
+        else:
+            raise ValueError("Couldn't load unknown datatype: '{}'".format(ext))
+
+    return data
