@@ -16,7 +16,7 @@ from _paths import PATHS
 from _loader import runlist_loader
 
 
-src_path = os.path.join(PATHS.local, "hese_pass2_scan_maps")
+src_path = os.path.join(PATHS.local, "hese_scan_maps")
 runlist_path = os.path.join(PATHS.local, "runlists")
 
 outpath = os.path.join(PATHS.local, "source_list")
@@ -29,10 +29,7 @@ runlists = runlist_loader("all")
 # Load sources up to HESE 6yr, list from:
 #   https://wiki.icecube.wisc.edu/index.php/Analysis_of_pre-public_alert_HESE/EHE_events#HESE
 # Last Run ID is 127853 from late 86V (2015) run, next from 7yr is 128290
-src_files = sorted(
-    glob(os.path.join(src_path, "Run0011*.json.gz")) +
-    glob(os.path.join(src_path, "Run0012[0-7]*.json.gz"))
-    )
+src_files = sorted(glob(os.path.join(src_path, "*.json.gz")))
 
 sources = []
 for src_file in src_files:
