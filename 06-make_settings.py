@@ -36,7 +36,6 @@ sindec_bins = np.unique(np.concatenate([
 
 # Make settings for each module per sample
 sample_names = source_list_loader()
-
 for key in sample_names:
     print("Building settings file for sample '{}'".format(key))
     # Load data that settings depend on
@@ -66,12 +65,6 @@ for key in sample_names:
     # :: Signal injector ::
     # Use a power law flux with somewhat generic gamma=2. 'model' must be a
     # method from `tdepps.utils.phys`, 'args' are the method parameters.
-    # ```
-    # import tdepps.utils.phys as phys
-    # def flux_model(trueE):
-    #     flux_mod = getattr(phys, _model_energy_opts["flux_model"]["model"])
-    #     return flux_mod(trueE, **_model_energy_opts["flux_model"]["args"])
-    # ```
     gamma = 2.
     E0 = 1.    # Reference energy in GeV
     phi0 = 1.  # This doesn't matter here, but set it anyway
@@ -124,12 +117,6 @@ for key in sample_names:
         "minimizer_opts": {"ftol": 1e-15, "gtol": 1e-10, "maxiter": 1000},
         "ns_bounds": [0.0, None],
         }
-    # Options for the multi LLH minimization
-    multi_llh_opts = {
-        "minimizer": "L-BFGS-B",
-        "minimizer_opts": {"ftol": 1e-15, "gtol": 1e-10, "maxiter": 1000},
-        "ns_bounds": [0.0, None],
-        }
 
     # :: Save settings per sample ::
     settings = {
@@ -138,10 +125,23 @@ for key in sample_names:
         "model_spatial_opts": model_spatial_opts,
         "model_energy_opts": model_energy_opts,
         "llh_opts": llh_opts,
-        "multi_llh_opts": multi_llh_opts,
         }
 
     fname = os.path.join(outpath, key + ".json")
     with open(fname, "w") as outf:
         json.dump(obj=settings, fp=outf, indent=2)
         print("  Saved to:\n    {}".format(fname))
+
+# :: Multi LLH ::
+# Options for the multi LLH minimization get saved extra
+print("Building settings file for the multi LLH module")
+multi_llh_opts = {
+    "minimizer": "L-BFGS-B",
+    "minimizer_opts": {"ftol": 1e-15, "gtol": 1e-10, "maxiter": 1000},
+    "ns_bounds": [0.0, None],
+    }
+
+fname = os.path.join(outpath, "multi_llh.json")
+with open(fname, "w") as outf:
+    json.dump(obj=multi_llh_opts, fp=outf, indent=2)
+    print("  Saved to:\n    {}".format(fname))
