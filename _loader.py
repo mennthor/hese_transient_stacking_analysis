@@ -29,14 +29,14 @@ def time_window_loader(idx=None):
     Returns
     -------
     dt0, dt1 : array-like
-        Left and right time window edges in seconds. If `ìdx``was ``None`` an
+        Left and right time window edges in seconds. If ``idx``was ``None`` an
         array of valid indices sorted ascending by total time window length is
         returned.
     """
-    _fname = _os.path.join(_PATHS.local, "time_window_list",
-                           "time_window_list.txt")
-    dt0, dt1 = _np.loadtxt(_fname, unpack=True, comments="#")
-    print("Loaded time window list from:\n  {}".format(_fname))
+    fname = _os.path.join(_PATHS.local, "time_window_list",
+                          "time_window_list.txt")
+    dt0, dt1 = _np.loadtxt(fname, unpack=True, comments="#")
+    print("Loaded time window list from:\n  {}".format(fname))
     if idx is None:
         idx = _np.argsort(dt1 - dt0)
         return _np.arange(len(idx))[idx]
