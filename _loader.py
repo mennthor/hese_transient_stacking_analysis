@@ -43,13 +43,13 @@ def time_window_loader(idx=None):
     if idx == 'all':
         return dt0, dt1
     else:
-        print("  Returning time windows for indices:")
+        info = "  Returning time windows for "
         try:
             len(idx)
             idx = _np.atleast_1d(idx)
-            print("  {}".format(_arr2str(idx)))
+            print(info + "indices: \n    [{}]".format(_arr2str(idx)))
         except TypeError:
-            print("  {}".format(idx))
+            print(info + "index: {}".format(idx))
         return dt0[idx], dt1[idx]
 
 
