@@ -28,9 +28,18 @@ ntime_windows = len(all_tw_ids)
 # tw20: 1e4 trials in ~430s -> ~  23 trials / sec
 # Need 1e8 trials, because we have many zero trials
 # Worst case: 1e8trials / 23trials/s / 3600s/h / 1000jobs ~ 1.2 h/job
-njobs_per_tw = int(1e3)
-ntrials_per_job = int(1e5)
+ntrials = 1e8
+njobs_per_tw = int(125)
+ntrials_per_job = int(ntrials / float(njobs_per_tw))
 njobs_tot = njobs_per_tw * ntime_windows
+if int(ntrials) != ntrials_per_job * njobs_per_tw:
+    raise ValueError("Job settings does not lead to exactly " +
+                     "{} trials".format(int(ntrials)))
+print("Preparing {} total trials per time window".format(int(ntrials)))
+print("  - {} jobs per time window".format(njobs_per_tw))
+print("  - {} trials per job".format(ntrials_per_job))
+print("Creating {} total jobfiles for all time windows".format(int(njobs_tot)))
+print("Worst runtime per job ~{:.2f}h".format(ntrials_per_job / 23. / 3600.))
 
 # Make unique job identifiers:
 # job_ids: 000 ... 999, 000 ... 999, ...
