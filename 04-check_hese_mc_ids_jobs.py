@@ -1,7 +1,7 @@
 # coding:utf-8
 
 """
-Create jobfiles for the `04-check_hese_mc_ids.py`.
+Create jobfiles for `04-check_hese_mc_ids.py`.
 """
 
 from __future__ import print_function, division
@@ -90,7 +90,7 @@ def collect_structure(files):
 if __name__ == "__main__":
     # Job creation steering arguments
     job_creator = dagman.DAGManJobCreator(mem=1)
-    job_name = "TransientHESE4yrStacking"
+    job_name = "hese_transient_stacking"
 
     job_dir = os.path.join(PATHS.jobs, "check_hese_mc_ids")
     script = os.path.join(PATHS.repo, "04-check_hese_mc_ids.py")

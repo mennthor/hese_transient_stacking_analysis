@@ -117,7 +117,7 @@ for _p in [off_data_outpath, on_data_outpath, mc_outpath]:
 # Load sources and lowest/highest lower/upper time window edge
 sources = source_list_loader("all")
 _dts0, _dts1 = time_window_loader("all")
-dt0_max, dt1_max = np.amin(_dts0), np.amax(_dts1)
+dt0_min, dt1_max = np.amin(_dts0), np.amax(_dts1)
 
 # Load runlists
 runlists = runlist_loader("all")
@@ -169,7 +169,7 @@ for name in all_sample_names:
     exp = exp[is_inside_runs]
 
     # Split data in on and off parts with the largest time window
-    is_offtime = split_data_on_off(exp["time"], sources[name], dt0_max, dt1_max)
+    is_offtime = split_data_on_off(exp["time"], sources[name], dt0_min, dt1_max)
 
     # Remove HESE like events from MC
     _fname = os.path.join(PATHS.local, "check_hese_mc_ids",
