@@ -15,13 +15,13 @@ import os
 import json
 import gzip
 import numpy as np
+from astropy.time import Time as astrotime
 
 from skylab.datasets import Datasets
 
 from _paths import PATHS
 from _loader import source_list_loader, time_window_loader, runlist_loader
 from myi3scripts import arr2str
-from tdepps.utils import create_run_dict
 
 
 def remove_hese_from_mc(mc, heseids):
@@ -160,9 +160,10 @@ for name in all_sample_names:
     name = name.replace(", ", "_")
 
     # Remove events before first and after last run per sample
-    rundict = create_run_dict(runlists[name])
-    first_run = np.amin(rundict["good_start_mjd"])
-    last_run = np.amax(rundict["good_stop_mjd"])
+    first_run = min(map(lambda d: astrotime(d["good_tstart"],
+                                            format="iso").mjd, runlists[name]))
+    last_run = max(map(lambda d: astrotime(d["good_tstop"],
+                                           format="iso").mjd, runlists[name]))
     is_inside_runs = (exp["time"] >= first_run) & (exp["time"] <= last_run)
     print("  Removing {} / {} events outside runs.".format(
         np.sum(~is_inside_runs), len(exp)))
