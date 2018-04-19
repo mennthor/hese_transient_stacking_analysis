@@ -2,6 +2,7 @@ numpy
 scipy
 healpy
 matplotlib
+astropy
 
 tqdm
 futures
