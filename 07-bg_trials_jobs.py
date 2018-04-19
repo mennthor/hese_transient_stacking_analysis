@@ -19,8 +19,8 @@ job_dir = os.path.join(PATHS.jobs, "bg_trials")
 script = os.path.join(PATHS.repo, "07-bg_trials.py")
 
 # Get time windows
-dt0, dt1 = time_window_loader("all")
-ntime_windows = len(dt0)
+all_tw_ids = time_window_loader()
+ntime_windows = len(all_tw_ids)
 
 # Timing tests: For 6 year pass2 HESE, 5 years PS tracks data, 1 year GFU
 # tw00: 1e6 trials in ~661s -> ~2770 trials / sec
@@ -38,8 +38,7 @@ lead_zeros = int(np.ceil(np.log10(njobs_per_tw)))
 job_ids = np.array(ntime_windows * ["{1:0{0:d}d}".format(lead_zeros, i) for i
                    in range(njobs_per_tw)])
 # tw_ids: 00, ..., 00, 01, .., 01, ..., 20, ..., 20
-tw_ids = np.concatenate([njobs_per_tw * [tw_id] for tw_id in
-                        np.arange(ntime_windows)])
+tw_ids = np.concatenate([njobs_per_tw * [tw_id] for tw_id in all_tw_ids])
 
 job_args = {
     "rnd_seed": np.arange(0, njobs_tot).astype(int),
