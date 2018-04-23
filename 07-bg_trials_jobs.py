@@ -39,7 +39,7 @@ print("Preparing {} total trials per time window".format(int(ntrials)))
 print("  - {} jobs per time window".format(njobs_per_tw))
 print("  - {} trials per job".format(ntrials_per_job))
 print("Creating {} total jobfiles for all time windows".format(int(njobs_tot)))
-print("Worst runtime per job ~{:.2f}h".format(ntrials_per_job / 23. / 3600.))
+print("Worst runtime per job ~{:.2f}h".format(ntrials_per_job / 20. / 3600.))
 
 # Make unique job identifiers:
 # job_ids: 000 ... 999, 000 ... 999, ...
@@ -50,7 +50,7 @@ job_ids = np.array(ntime_windows * ["{1:0{0:d}d}".format(lead_zeros, i) for i
 tw_ids = np.concatenate([njobs_per_tw * [tw_id] for tw_id in all_tw_ids])
 
 job_args = {
-    "rnd_seed": np.arange(0, njobs_tot).astype(int),
+    "rnd_seed": np.arange(10000, 10000 + njobs_tot).astype(int),
     "ntrials": njobs_tot * [ntrials_per_job],
     "job_id": job_ids,
     "tw_id": tw_ids,
