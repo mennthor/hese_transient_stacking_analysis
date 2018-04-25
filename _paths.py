@@ -54,6 +54,7 @@ _paths = {
     "data": _os.path.join("/data", "user", "tmenne", _repo_name,
                           "rawout_" + _BRANCH_NAME),
     "jobs": _os.path.join(_repo_path, "jobfiles_" + _BRANCH_NAME),
+    "plots": _os.path.join(_repo_path, "plots_" + _BRANCH_NAME),
 }
 
 PATHS = _Paths(_paths)
