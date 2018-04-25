@@ -6,7 +6,7 @@ Loads data and settings and builds the models, likelihoods and injectors to do
 the trials with.
 """
 
-import gc
+import gc  # Manual garbage collection
 import os
 import json
 import gzip
