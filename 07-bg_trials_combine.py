@@ -68,7 +68,7 @@ for tw_id in all_tw_ids:
         # Save it
         fpath = os.path.join(outpath, "tw_{:02d}.json.gz".format(tw_id))
         with gzip.open(fpath, "w") as outf:
-            json.dump(trials, fp=outf, indent=2)
+            json.dump(trials, fp=outf, indent=0, separators=(",", ":"))
             print("  - Saved to:\n    {}".format(fpath))
     else:
         print("  - no trials found")
