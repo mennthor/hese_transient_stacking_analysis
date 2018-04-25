@@ -22,7 +22,7 @@ from _loader import time_window_loader
 
 inpath = os.path.join(PATHS.data, "bg_trials")
 
-outpath = os.path.join(PATHS.local, "bg_trials")
+outpath = os.path.join(PATHS.data, "bg_trials_combined")
 if os.path.isdir(outpath):
     res = raw_input("'{}' already exists. ".format(outpath) +
                     "\nAllow overwrites (y/n)? ")
