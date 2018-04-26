@@ -19,9 +19,15 @@ from _plots import make_bg_pdf_scan_plots
 
 inpath = os.path.join(PATHS.data, "bg_trials_combined", "tw_??.json.gz")
 outpath = os.path.join(PATHS.local, "bg_pdfs")
+plotpath = os.path.join(PATHS.plots, "bg_pdfs")
+
+# Uncomment to process the independent ones from LIDO
+# inpath = os.path.join(PATHS.data, "bg_trials_combined_lido", "tw_??.json.gz")
+# outpath = os.path.join(PATHS.local, "bg_pdfs_lido")
+# plotpath = os.path.join(PATHS.plots, "bg_pdfs_lido")
+
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
-plotpath = os.path.join(PATHS.plots, "bg_pdfs")
 if not os.path.isdir(plotpath):
     os.makedirs(plotpath)
 
