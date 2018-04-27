@@ -138,6 +138,35 @@ def source_list_loader(names=None):
     return {name: sources[name] for name in names}
 
 
+def source_map_loader(src_list):
+    """
+    Load the reco LLH map for a given source from the source list loader.
+
+    Parameters
+    ----------
+    src_list : list of dicts, shape (nsrcs)
+        List of source dicts, as provided by ``source_list_loader``. Each dict
+        must have key ``'map_path'``.
+
+    Returns
+    -------
+    healpy_maps : array-like, shape (nsrcs, npix)
+        Healpy map belonging to the given source for each source in the same
+        order as in ``src_list``.
+    """
+    healpy_maps = []
+    for src in src_list:
+        fpath = src["map_path"]
+        print("Loading map for source: {}".format(
+            _os.path.basename(fpath)))
+        with _gzip.open(fpath) as f:
+            src = _json.load(f)
+
+        healpy_maps.append(_np.array(src["map"]))
+
+    return _np.atleast_2d(healpy_maps)
+
+
 def runlist_loader(names=None):
     """
     Loads runlist for given sample name.
