@@ -1,0 +1,69 @@
+\include{header}
+
+% \addbibresource{references.bib}
+
+
+\begin{document}
+
+\input{titlepage}
+
+
+\section{Overview}
+This analysis is searching for a stacked lower energy neutrino contribution at the HESE track event positions, which are treated as transient sources.
+We test for 21 generic box time windows increasing in logarithmic time from 2 seconds to 5 days symmetrically around all sources.
+
+For the physics motivation: IceCube couldn't find a significant point source so far despite many different analysis and efforts.
+Prominent examples relevant for this is search are the \href{time integrated 7 year point source search} and the \href{HESE 6 year point source search}, both with no significant results.
+But the HESE events on their own show a clear astrophysical signal and therefore should originate from some sources.
+This analysis test if there is any clustering of lower energy neutrino events around the HESE locations, aiming to constrain various HESE emission models.
+\textcolor{nordred}{Note: The model selection is currently reviewed}.
+
+The analysis method is a time dependent unbinned likelihood approach similar to the so called \enquote{GRB Likelihood}.
+Key features used here are:
+\begin{itemize}
+  \item Background is modeled using scrambled data
+  \item Using time dependent spatial background PDFs
+  \item Energy PDF is estimated from data and MC with fixed index $E^{-2}$ power law
+\end{itemize}
+
+For source and test data we use:
+\begin{itemize}
+  \item Source dataset: 6 years HESE track events, IC79 - IC86, 2015.
+  \item Test dataset: 5 years PS tracks (IC79 - IC86, 2014) + 1 year GFU (IC86, 2015)
+\end{itemize}
+
+The wiki can be found at \url{https://wiki.icecube.wisc.edu/index.php/Transient_HESE_Stacking} and contains this analysis note.
+
+
+\section{Software}
+The analysis scripts are in a git repository and can be found at \path{/home/tmenne/analysis/hese_transient_stacking/analysis}.
+Code is enumerated in the order of script execution, if someone wants to redo all analysis steps.
+The branch for this analysis is \code{original_hese} which tests the 22 original HESE track events.
+
+The main analysis software used is made from scratch in python with a small C++ back-end for time consuming work with inspiration from \href{http://code.icecube.wisc.edu/projects/icecube/browser/IceCube/sandbox/skylab}{skylab} and \href{http://code.icecube.wisc.edu/projects/icecube/browser/IceCube/sandbox/richman/grbllh}{grbllh}.
+The software repository can be found at \path{/home/tmenne/software/tdepps}.
+The branch used for the analysis is \code{new_structure}.
+
+\section{Datasets}
+This analysis used HESE track events as sources and point source and GFU samples as a test dataset.
+
+\section{Analysis Method}
+
+\section{Analysis Performance}
+
+\section{Analysis Results}
+
+
+\appendix
+\part*{\appendixname}
+\section{Presentations}
+\begin{description}
+  \item[Transients Call] May 22nd, 2017: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1za1RMbjlzTFE0YVU/view}{First Presentation in Transients group}
+  \item[Transients Call] June 12th, 2017: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1zTFI3Umg3XzZrSE0/view}{Progress on Software}
+  \item[Transients Call] September 18th: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1zR28tTmhBT3VYTGs/view}{Updates on tests on John Felde's NRT analysis}
+  \item[Fall Meeting Berlin] October 10th, 2017: \href{https://events.icecube.wisc.edu/getFile.py/access?contribId=37&sessionId=32&resId=0&materialId=slides&confId=90}{First studies on HESE events with PS sample}
+  \item[Transients Call] October 30th, 2017: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1zOFdkajczT3JWNUU/view}{Performance and BG trials for all time windows}
+  \item[Transients Call] April 30th, 2018: \href{https://drive.google.com/file/d/12vOMOpt1nMrmnBdM_4wV5sMdg0FUJLqF/view}{Update to 6 years of HESE sources}
+\end{description}
+
+\end{document}

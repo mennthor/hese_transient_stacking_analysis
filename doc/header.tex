@@ -1,0 +1,171 @@
+\documentclass[
+  bibliography=totoc,     % Bibliography as unnumbered chapter in toc
+  numbers=noenddot,       % No dot after figure/table number
+  captions=tableheading,  % Correct spacing for table headings
+  % titlepage=firstiscover, % Symmetrical margins on titlepage
+  parskip=half,           % Hals skip instead of intend in new paragraph
+  headings=normal,
+  a4paper,
+]{scrartcl}
+
+% Warning, if another latex run is needed
+\usepackage[aux]{rerunfilecheck}
+
+% Just list chapters and sections in the toc, not subsections or smaller
+\setcounter{tocdepth}{1}
+
+%------------------------------------------------------------------------------
+%-- Language and Type
+%------------------------------------------------------------------------------
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}  % -- becomes en-dash etc.
+
+% Language: english | german
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+
+% For german | english abstract and german | english titles in the toc
+\setotherlanguages{english}
+
+% Intelligent quotation marks, language and nesting sensitive
+\usepackage[autostyle]{csquotes}
+
+% Microtypographical features, makes the text look nicer on the small scale
+\usepackage{microtype}
+
+%------------------------------------------------------------------------------
+%-- Math
+%------------------------------------------------------------------------------
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+% Enable Unicode-Math and follow the ISO-Standards for typesetting math
+\usepackage[
+  math-style=ISO,
+  bold-style=ISO,
+  sans-style=italic,
+  nabla=upright,
+  partial=upright,
+]{unicode-math}
+\setmathfont{Latin Modern Math}
+
+\usepackage{xfrac}   % Small fracs for the text with \sfrac{}{}
+\usepackage{braket}  % Good for expectation values
+
+%------------------------------------------------------------------------------
+%-- Numbers and Units
+%------------------------------------------------------------------------------
+\usepackage[
+  locale=US,
+  separate-uncertainty=true,
+  per-mode=symbol-or-fraction,
+  exponent-product=\cdot,
+]{siunitx}
+\sisetup{math-micro=\text{µ},text-micro=µ}
+
+%------------------------------------------------------------------------------
+%--Tables
+%------------------------------------------------------------------------------
+\usepackage{booktabs}  % Use \toprule, \midrule, \bottomrule
+
+%------------------------------------------------------------------------------
+%-- Graphics
+%------------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{grffile}
+
+%------------------------------------------------------------------------------
+%-- Colors
+%------------------------------------------------------------------------------
+\usepackage{xcolor}
+\xdefinecolor{darkgrey}{HTML}{353132}
+% Nord colors: https://github.com/arcticicestudio/nord
+% Polar Night (dark greys)
+\xdefinecolor{nordgrey1}{HTML}{2E3440}
+\xdefinecolor{nordgrey2}{HTML}{3B4252}
+\xdefinecolor{nordgrey3}{HTML}{434C5E}
+\xdefinecolor{nordgrey4}{HTML}{4C566A}
+% Snow Storm (muted whites)
+\xdefinecolor{nordwhite1}{HTML}{D8DEE9}
+\xdefinecolor{nordwhite2}{HTML}{E5E9F0}
+\xdefinecolor{nordwhite3}{HTML}{ECEFF4}
+% Frost (cool blues/greens)
+\xdefinecolor{nordbluegreen}{HTML}{8FBCBB}
+\xdefinecolor{nordcyan}{HTML}{88C0D0}
+\xdefinecolor{nordpaleblue}{HTML}{81A1C1}
+\xdefinecolor{norddeepblue}{HTML}{5E81AC}
+% Aurora (muted accent colors)
+\xdefinecolor{nordred}{HTML}{BF616A}
+\xdefinecolor{nordorange}{HTML}{D08770}
+\xdefinecolor{nordyellow}{HTML}{EBCB8B}
+\xdefinecolor{nordgreen}{HTML}{A3BE8C}
+\xdefinecolor{nordviolet}{HTML}{B48EAD}
+
+%------------------------------------------------------------------------------
+%-- Floats
+%------------------------------------------------------------------------------
+% Allow figures to be placed in the running text by default:
+\usepackage{scrhack}
+\usepackage{float}
+\floatplacement{figure}{htbp}
+\floatplacement{table}{htbp}
+
+\usepackage[section, below]{placeins}  % Keep figures and tables in the section
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+%------------------------------------------------------------------------------
+%-- Customize list environments
+%------------------------------------------------------------------------------
+\usepackage{enumitem}
+
+%------------------------------------------------------------------------------
+%-- Bibliography
+%------------------------------------------------------------------------------
+\usepackage[
+  backend=biber,    % use modern biber backend
+  autolang=hyphen,  % load hyphenation rules for if language of bibentry is not
+                    % german, has to be loaded with \setotherlanguages
+                    % in the references.bib use langid={en} for english sources
+]{biblatex}
+
+%------------------------------------------------------------------------------
+%-- Code environment and verbatim
+%------------------------------------------------------------------------------
+\usepackage{listings}
+\newcommand{\code}[1]{\lstinline|#1|}
+
+%------------------------------------------------------------------------------
+%-- Misc
+%------------------------------------------------------------------------------
+\usepackage[pdfusetitle,unicode,]{hyperref}
+\hypersetup{
+  unicode=true,
+  colorlinks,
+  linkcolor=black,
+  citecolor=black,
+  filecolor=black,
+  urlcolor=norddeepblue,
+}
+\usepackage{bookmark}
+\usepackage[shortcuts]{extdash}
+\usepackage{scrlayer-scrpage}  % For custom KOMA layout modifications
+
+%------------------------------------------------------------------------------
+%-- Custom math operators
+%------------------------------------------------------------------------------
+
+\newcommand{\mperiod}{\quad\text{.}}
+\newcommand{\mcomma}{\quad\text{,}}
+\newcommand{\mintertext}[1]{\quad\text{#1}\quad}
+
+\renewcommand{\d}[1]{\mathrm{d}#1}
+\newcommand{\del}[1]{\partial #1}
+\newcommand{\dd}[2]{\frac{\d{#1}}{\d{#2}}}
+\newcommand{\deldel}[2]{\frac{\partial #1}{\partial #2}}
+
+\DeclareMathOperator{\rect}{rect}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\trace}{trace}
