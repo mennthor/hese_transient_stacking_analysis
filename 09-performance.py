@@ -22,6 +22,7 @@ from tdepps.utils import make_src_records
 from tdepps.grb import GRBLLH, GRBModel, MultiGRBLLH
 from tdepps.grb import TimeDecDependentBGDataInjector
 from tdepps.grb import UniformTimeSampler, SignalFluenceInjector
+from tdepps.grb import HealpySignalFluenceInjector
 from tdepps.grb import MultiBGDataInjector, MultiSignalFluenceInjector
 from tdepps.grb import GRBLLHAnalysis
 import tdepps.utils.phys as phys
@@ -56,10 +57,12 @@ parser = argparse.ArgumentParser(description="hese_stacking")
 parser.add_argument("--rnd_seed", type=int)
 parser.add_argument("--ntrials", type=int)
 parser.add_argument("--tw_id", type=int)
+parser.add_argument("--sig_inj", type=str)
 args = parser.parse_args()
 rnd_seed = args.rnd_seed
 ntrials = args.ntrials
 tw_id = args.tw_id
+sig_inj_type = args.sig_inj
 
 rndgen = np.random.RandomState(rnd_seed)
 dt0, dt1 = _loader.time_window_loader(tw_id)
@@ -92,9 +95,22 @@ for key in sample_names:
     # Setup Signal injector
     fmod = opts["sig_inj_opts"].pop("flux_model")
     flux_model = flux_model_factory(fmod["model"], **fmod["args"])
-    sig_inj_i = SignalFluenceInjector(flux_model, time_sampler=time_sam,
-                                      inj_opts=opts["sig_inj_opts"])
-    sig_inj_i.fit(srcs_rec, MC=mc)
+    # Decide what type of injection we need
+    if sig_inj_type == "healpy":
+        # Always inject the best fit source position, exactly as tested
+        opts["sig_inj_opts"]["inj_sigma"] = 3.
+        src_maps = _loader.source_map_loader(src_list=srcs)
+        sig_inj_i = HealpySignalFluenceInjector(
+            flux_model, time_sampler=time_sam, inj_opts=opts["sig_inj_opts"])
+        sig_inj_i.fit(srcs_rec, src_maps=src_maps, MC=mc)
+        del src_maps
+    elif sig_inj_type == "ps":
+        # Inject source position from prior map, worsening performance
+        sig_inj_i = SignalFluenceInjector(flux_model, time_sampler=time_sam,
+                                          inj_opts=opts["sig_inj_opts"])
+        sig_inj_i.fit(srcs_rec, MC=mc)
+    else:
+        raise ValueError("`sig_inj_type` can be 'ps' or 'healpy'.")
     sig_injs[key] = sig_inj_i
 
     # Setup LLH model and LLH
@@ -132,8 +148,14 @@ beta = 0.9
 ts_val = 0.
 # Seed close to zero, which is close to the minimum for most cases
 ns0 = .1
+
 # Scan dense and large enough region for discovery potentials
-mu_sig = np.r_[0.1, np.arange(0.5, 15.5, 0.5)]
+if sig_inj_type == "ps":
+    mu_sig = np.r_[0.1, np.arange(0.5, 15.5, 0.5)]
+elif sig_inj_type == "healpy":
+    mu_sig = np.r_[0.1, 0.5, np.arange(1., 30., 1.)]
+    if tw_id > 16:
+        mu_sig = np.r_[0.1, 0.5, np.arange(1., 60., 2.)]
 
 perf = ana.performance(ts_val=ts_val, beta=beta, mus=mu_sig, ns0=ns0,
                        n_batch_trials=ntrials)
@@ -153,7 +175,7 @@ out = {
     }
 
 # Save as JSON
-outpath = os.path.join(PATHS.data, "performance_trials")
+outpath = os.path.join(PATHS.data, "performance_trials_" + sig_inj_type)
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
