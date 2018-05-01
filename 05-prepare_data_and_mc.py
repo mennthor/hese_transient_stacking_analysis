@@ -9,6 +9,7 @@
    kept as off-data to build models and injectors from.
 3) Remove HESE like events identified in `04-check_hese_mc_ids` from the
    simulation files.
+4) Remove HESE events from on time data sets.
 """
 
 import os
@@ -179,6 +180,10 @@ for name in all_sample_names:
         heseids = json.load(_file)
         print("  Loaded HESE like MC IDs from :\n    {}".format(_fname))
     is_hese_like = remove_hese_from_mc(mc, heseids)
+
+    # Remove HESE events from ontime data
+    exp_ontime = exp[~is_offtime]
+    raise NotImplementedError("Remove HESE from ontime data!")
 
     # Save, also in npy format
     print("  Saving on, off and non-HESE like MCs at:")
