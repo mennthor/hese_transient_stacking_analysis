@@ -132,8 +132,8 @@ if __name__ == "__main__":
     # MC used for PS tracks IC86 2011 datasets (only level 3 as i3)
     fpath = os.path.join("/data", "sim", "IceCube", "2011", "filtered",
                          "level2", "neutrino-generator")
-    # This is stated on Stefan's wiki page
     files.update({
+        # This is stated on Stefan's wiki page
         "9095": {
             "path": os.path.join(fpath, "9095"),
             "gcd": os.path.join(fpath, "9095", "00000-00999",
@@ -147,6 +147,14 @@ if __name__ == "__main__":
             "gcd": os.path.join(fpath, "9701", "00000-00999/",
                                 "GeoCalibDetectorStatus_IC86.55697" +
                                 "_corrected_V2.i3.gz"),
+            "legacy": False,
+        },
+        # These are definitely in there
+        "9366": {
+            "path": os.path.join(fpath, "9366"),
+            "gcd": os.path.join(fpath, "9366", "00000-00999/",
+                                "GeoCalibDetectorStatus_IC86.55697_" +
+                                "corrected_V2.i3.gz"),
             "legacy": False,
         },
     })
