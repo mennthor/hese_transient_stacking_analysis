@@ -16,7 +16,7 @@ from _paths import PATHS
 from _loader import runlist_loader
 
 
-src_path = os.path.join(PATHS.local, "hese_scan_maps")
+src_path = os.path.join(PATHS.local, "hese_scan_maps_truncated")
 runlist_path = os.path.join(PATHS.local, "runlists")
 
 outpath = os.path.join(PATHS.local, "source_list")
