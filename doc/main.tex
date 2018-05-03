@@ -7,6 +7,8 @@
 
 \input{titlepage}
 
+\tableofcontents
+\newpage
 
 
 \section{Overview}
@@ -65,14 +67,40 @@ So the maps are built by defining a new map with exact pixels in equatorial coor
 This can introduce angular errors in the size of a pixel diameter which can be neglected here because of the smoothing described in the next sentence.
 As a last step the maps are smoothed with a one degree Gaussian kernel using healpy as it was done for the very first HESE point source search, described \href{https://wiki.icecube.wisc.edu/index.php/High-Energy_Starting_Event_Point_Source_Searches#Effects_of_Binning.2C_Rotation.2C_and_Smoothing}{here}.
 This introduces some numerical errors because the smoothing happens in spherical harmonics space which has to be truncated numerically.
-The artefacts are removed by setting the resulting map to zero outside the $6\sigma$ level, which is obtained from Wilks' theorem due to a lack of a proper test statistic.
-The sum of all smoothed normal space PDF maps can be seen in fig.~(\ref{fig:hese_maps_all}).
+The artifacts are removed by setting the resulting map to zero outside the $6\sigma$ level, which is obtained from Wilks' theorem due to a lack of a proper test statistic.
+See fig.~(\ref{fig:source_map_handling}) for the smoothing process, the sum of all smoothed normal space PDF maps can be seen in fig.~(\ref{fig:hese_maps_all}).
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=.9\textwidth]{inc/srcs_summed.png}
+  \includegraphics[width=.9\textwidth]{inc/source_maps/summed_maps.png}
   \caption{All 22 HESE scan maps in equatorial coordinates. Each map has been converted from log-Likelihood to normal space and smoothed with a 1 degree Gaussian kernel.}
   \label{fig:hese_maps_all}
+\end{figure}
+
+\begin{figure}[h] % 2 x 2 grid
+  \centering
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/180108-HESE_map_raw_and_smoothed/HESE_contours_Floyd_raw_lin.png}
+    \subcaption{Original scan map in linear scale.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/180108-HESE_map_raw_and_smoothed/HESE_contours_Floyd_smooth_lin.png}
+    \subcaption{Scan map in linear scale smoothed with a $1^\circ$ gaussian kernel.}
+  \end{subfigure}
+
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/source_maps/artifacts/HESE_123326_artifacts.png}
+    \subcaption{Smoothing artifacts after healpy smoothing.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/source_maps/artifacts/HESE_123326.png}
+    \subcaption{Truncated map at $6\sigma$ level with no significant smoothing artifacts left.}
+  \end{subfigure}
+
+  \caption{Upper row: Original and smoothed version of the scan maps after conversion to equatorial coordinates. Lower row: Removing artifacts from healpy smoothing.}
+  \label{fig:source_map_handling}
 \end{figure}
 
 
@@ -116,6 +144,7 @@ This doesn't affect on-time data, only the off-data used to build the model PDFs
 \section{Analysis Method – Modelling}
 Here we want to show the specific choices made to model the per event PDFs for signal and background contribution.
 For each we use a combination of independent PDFs for the spatial, energy and time part.
+All numerical settings used in the actual analysis code are stored as \code{JSON} files at \path{out_original_hese/settings/<sample_name>.json}.
 
 \subsection{Spatial Part}
 For the spatial signal PDF a Kent distribution with the per event circular uncertainty $\sigma$ is used.
@@ -148,6 +177,7 @@ The steps are:
   \item Fit a continuous spline model to these discrete parameter points to obtain a parameter set per source depending on its declination.
   \item To get the background allsky PDF for each sources time window, rate models selected for a fine grid of parameters per declination are selected and integrated over each sources time window.
   The integral points are modelled by an interpolating spline and its integral is renormalized to $\int_{-1}^{1} \mathrm{spl}(\sin\delta) \d{\sin\delta} = 1$.
+\end{enumerate}
 
 See fig.~(\ref{fig:dec_bin_rate_models}) for the fitted rate models, fig.~(\ref{fig:param_splines}) for the parameter splines and fig.~(\ref{fig:model_bg_pdfs}) for the resulting background PDFs.
 
@@ -223,29 +253,194 @@ See fig.~(\ref{fig:dec_bin_rate_models}) for the fitted rate models, fig.~(\ref{
     \includegraphics[width=0.9\textwidth]{inc/sindec_splines/IC86_2012-2014_src_11.png}
   \end{subfigure}
 
-  \caption{Resulting background PDFs for each source in the IC86, 2012--2014 sample. Shown in blue is a spline fit to the grey histogram, which is the averaged PDF over the whole dataset.}
+  \caption{Resulting background PDFs for each source in the IC86, 2012--2014 sample. Shown in blue is a spline fit to the gray histogram, which is the averaged PDF over the whole dataset. Red is the sampled background declination distribution following the black spline model}
   \label{fig:model_bg_pdfs}
 \end{figure}
 
-
-
-\end{enumerate}
-
 \subsection{Energy Part}
-TODO
+The energy PDFs are not build on their own but by directly using a ratio of 2D histograms for background and signal energy vs. $\sin\delta$ distributions.
+The background histogram is estimated from off-time data, signal from signal MC weighted to fixed power law index 2.
+The same binning is used for both histograms, where the $\sin\delta$ bins are the same as used for the spline PDFs.
+40 energy bins are chosen to cover the whole MC energy range.
+Because we can have bins where either data or MC or both are missing we need to fill empty values for a smooth PDF ratio.
+Missing ratio values are conservatively filled by first filling the edges of each column with the highest / lowest PDF ratio per column.
+The empty bins are interpolated using the new edge and all valid values until all bins are filled.
+To smoothen out some fluctuations from low statistics in the data histogram, the PDF is further required to monotonically decrease from the highest energies downwards per column which avoids unphysical high ratios for low energy proxies
+As a last step a \code{scipy.interpolate.RegularGridInterpolator} is used to obtain continuous ratio values for all $\sin\delta$, energy pairs.
+See fig.~(\ref{fig:energy_pdf_ratios}) for an example background PDF ratio and the intermediate fill step.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/llh_model/energy_pdfs/IC79.png}
+    \subcaption{Energy PDF ratio.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/time_misc/fill_sindec_logE_hist_border_values.png}
+    \subcaption{Intermediate step after filling the column edges.}
+  \end{subfigure}
+  \caption{Energy PDF ratio for sample IC79 and an intermediate step in construction.}
+  \label{fig:energy_pdf_ratios}
+\end{figure}
+
 
 \subsection{Time Part}
-TODO
+The time PDFs are simple box models for both signal and background.
+For signal this is a generic choice for an unknown emission process.
+For background we could more accurately use the fitted rate model for the background PDF.
+But as the amplitudes are flat even at the largest time window the PDF would be virtually indistinguishable from a uniform distribution.
+So for code simplicity a box model is also used for the background PDF.
+This also mean that no extra sensitivity is coming from the temporal term, it is merely there to select event within the time windows.
 
 \subsection{Fixed Background Estimation and Stacking Weights}
-TODO
+As mentioned previously the background event estimations $\braket{n_{B,k}}$ are estimated from data and fixed for the Likelihood.
+The values are obtained by integrating the rate model for the whole sky over each sources time window.
+The rate model fits can be seen in fig.~(\ref{fig:rate_allsky}).
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/rate_models_and_rates/IC79.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/rate_models_and_rates/IC86_2011.png}
+  \end{subfigure}
+
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/rate_models_and_rates/IC86_2012-2014.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/rate_models_and_rates/IC86_2015.png}
+  \end{subfigure}
+
+  \caption{Allsky rate models for each sample. These are integrated over each sources time window to obtain the fixed background event estimations $\braket{n_{B,k}}$ per source.}
+  \label{fig:rate_allsky}
+\end{figure}
+
+If stacking weights are a-priori fixed they should reflect the expected signal contribution to each source.
+Here the weights are chosen to only reflect the detector acceptances for each source corresponding to a $E^{-2}$ power law.
+A spline is fitted to a $\sin\delta$ histogram of the signal and a spline is fit to get a continuous representation.
+From these splines the weights are constructed per sample.
+The multi Likelihood renormalizes the weights to a global sum of 1.
+See fig.~(\ref{fig:stacking_src_weights_spl}) for the splines and MC histograms.
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC79.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC86_2011.png}
+  \end{subfigure}
+
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC86_2012-2014.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC86_2015.png}
+  \end{subfigure}
+
+  \caption{MC histograms in $\sin\delta$ weighted to an $E^{-2}$ power law flux normalized to th full $\sin\delta$ range. Stacking weights are computed per sample and renormalized for the multi sample Likelihood.}
+  \label{fig:stacking_src_weights_spl}
+\end{figure}
+
+\subsection{Note to LLH Minimization}
+In the Likelihood minimization we can take advantage of the small background of this analysis for smaller time windows.
+Because most of the time only none, a single event or two events take part in the actual likelihood minimization, we can obtain an analytic result of the test statistic fit.
+This speeds up calculations and is the most accurate to do.
+Below are the analytic solutions for zero, one and two events with the single sample likelihood, where the number of events mean the number of non-zero signal over background ratios.
+The same reasoning holds for the multi sample likelihood.
+
+As a reminder, the single sample test statistic that is fitted is
+\begin{equation}
+  \frac{1}{2}\Lambda
+  = -n_S + \sum_{i=1}^N \ln\left(
+      \frac{n_S\sum_{k=1}^{N_\text{srcs}}
+            w_k^\text{D}w_k^\text{T}S_{i,k}}
+           {\Braket{n_{B,k}} B_i} + 1\right)
+  = -n_S + \sum_{i=1}^N \ln\left(n_S \cdot R_i + 1\right)
+\end{equation}
+where $R_i$ is introduced as a shortcut for the fixed signal over background ratios per data configuration, which has the gradient in the single fit parameter $n_S$
+\begin{equation}
+  \frac{1}{2}\deldel{\lambda}{n_S}
+  = -1 + \sum_{i=1}^N \frac{R_i}{n_S\cdot R_i + 1} \mcomma
+\end{equation}
+
+For zero event the case is trivial because the \enquote{fit} is directly zero -- we don't allow $n_S < 0$ in this analysis and only fit for over-fluctuations -- because no sum term is surviving
+\begin{equation}
+  \frac{1}{2}\Lambda = -n_S \Rightarrow \hat{n}_S
+  = 0, \hat{\Lambda} = -2 \mperiod
+\end{equation}
+
+For a single surviving event, a single sum term is left and we have to solve the linear equation in the gradient and re-insert in the likelihood to obtain the best fit $n_S$ and $\Lambda$.
+The best fit $n_S$ is
+\begin{equation}
+  0 = -1 + \frac{R_1}{n_S\cdot R_1 + 1}
+    \Leftrightarrow \hat{n}_S = \frac{R_1 - 1}{R_1}
+\end{equation}
+which gets us
+\begin{equation}
+  \frac{1}{2}\hat{\Lambda}
+    = -\hat{n}_S + \ln\left( \hat{n}_S \cdot R_1 + 1 \right)
+    = -\hat{n}_S + \ln(R_1)
+\end{equation}
+for the best fit test statistic value.
+
+The last analytic case handled is the one with two events left, which leaves us with a quadratic equation to solve.
+For $n_S$ we get
+\begin{align}
+  0 &= -1 + \frac{R_1}{n_S\cdot R_1 + 1} + \frac{R_2}{n_S\cdot R_2 + 1} \\
+  0 &= \Leftrightarrow n_S^2 + n_S \left(\frac{R_1 + R_2}{R_1 R_2} - 1\right) +
+       \frac{1}{R_1 R_2} - \frac{R_1 + R_2}{R_1 R_2}
+\end{align}
+and with the shortcut $\frac{R_1 + R_2}{R_1 R_2} \def \tilde{c}$ the best fit is obtained solving the quadratic equation
+\begin{equation}
+  \hat{n}_S = —\frac{1}{2}\tilde{c} + 1 + \sqrt{\frac{\tilde{c}^2}{4} + 1 - \frac{1}{R_1 R_2}}
+\end{equation}
+The negative solution always resembles the fit for $n_S < 0$ and is not considered here.
+Re-inserting into $\Lambda$ gives us the best fit which is not further simplified here
+\begin{equation}
+  \frac{1}{2}\hat{\Lambda} = -\hat{n}_S +
+                             \ln\left( \hat{n}_S \cdot R_1 + 1 \right) +
+                             \ln\left( \hat{n}_S \cdot R_2 + 1 \right)
+\end{equation}
+
+With the help of \code{Mathematica} we can also show, that for two events it is event sufficient to only compute the solution if the sum of both signal over background ratios is $R_1 + R_2 > 1$.
+See fig.~(\ref{fig:mathematica_ts}) for the interesting region.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.4\textwidth]{inc/analytic_TS_mathematica/analytic_TS_mathematica.png}
+  \caption{Region where the best fit test statistic is nonzero for the two-events-left-case. $a, b$ correspond to $R_1, R_2$. Only if the sum $R_1 + R_2 > 1$, the test statistic is non-zero.}
+  \label{fig:mathematica_ts}
+\end{figure}
 
 
 
 \section{Analysis Performance}
 
 \subsection{Background Trial Injection}
-TODO
+To build the background only test statistic needed for p-value calculation, a new random data set is created each trial and fit with the Likelihood test statistic.
+Background trials are done independent for each time window and for each window $10^8$ trials are done to get enough non-zero test statistic values in the low background regime (small time windows).
+In general scrambled and resampled off-time data is used to estimate the background contribution.
+
+Each trial data set is created as follows:
+\begin{itemize}
+  \item Draw the events to inject for each source from the fixed background expectations from a Poisson distribution.
+  \item For the requested number of events per source, re-sample off-time data events according to the previously build spline PDF per source.
+  \item Replace the right-ascension values with random, uniformly distributed values.
+  This assumes a flat azimuth distribution, which might not hold to full extend for the smallest time windows, but is neglected here.
+  \item Sample new times in MJD from the rate model per source.
+  The parameters are obtained from the previously fit parameter splines.
+  For the same arguments as used before in the LLH model, we sample uniformly in the time windows instead of doing a costly rejection sampling of the sine function.
+  Because of the small amplitude this is virtually the same event for the largest time window.
+\end{itemize}
+
+The selected \textcolor{nordred}{\huge hier weiter}
 
 \subsection{Signal Trial Injection}
 TODO
@@ -274,6 +469,7 @@ TODO
   \item[Fall Meeting Berlin] October 10th, 2017: \href{https://events.icecube.wisc.edu/getFile.py/access?contribId=37&sessionId=32&resId=0&materialId=slides&confId=90}{First studies on HESE events with PS sample}
   \item[Transients Call] October 30th, 2017: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1zOFdkajczT3JWNUU/view}{Performance and BG trials for all time windows}
   \item[Transients Call] April 30th, 2018: \href{https://drive.google.com/file/d/12vOMOpt1nMrmnBdM_4wV5sMdg0FUJLqF/view}{Update to 6 years of HESE sources}
+  \item[Analysis Call] May 3rd, 2018: \href{https://drive.google.com/file/d/199a-w_JzH4m6RdVKmOb57rWMw4-HDSJj/view}{Analysis review in analysis call}
 \end{description}
 
 \section*{Reviewer Q\&A}
@@ -344,13 +540,22 @@ TODO
         Also, the longer the time window the longer the trial computation takes so this was also a slight factor of not having too large time windows.
   \end{itemize}
 
+\subsubsection*{Mike Richman}
+  \begin{itemize}
+      \item Q (Slack April 30th, 2018):
+        [...] have you considered \emph{not} using the PS selection? Especially, have you considered using more years of GFU?
+        [...] GFU was always about looking for transients, so you might get some extra sensitivity for free.
+      \item A:
+        I talked quickly to Thomas Kintscher who created the GFU sample and it seems that the earlier years are not in an ready to use shape, at least not on a time scale that works for my thesis anymore.
+  \end{itemize}
+
 
 
 \section{Additional Plots}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=.9\textwidth]{inc/rate_all_samples.png}
+  \includegraphics[width=.9\textwidth]{inc/sources_and_rates/rate_all_samples.png}
   \caption{All runs in the off data samples together with the 22 HESE sources per sample. The rates differ per sample due to different event selections. Seasonal variations cause the sinus like variations per year.}
   \label{fig:rate_all_samples}
 \end{figure}
