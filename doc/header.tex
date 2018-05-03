@@ -10,9 +10,7 @@
 
 % Warning, if another latex run is needed
 \usepackage[aux]{rerunfilecheck}
-
-% Just list chapters and sections in the toc, not subsections or smaller
-\setcounter{tocdepth}{1}
+\setcounter{tocdepth}{2}
 
 %------------------------------------------------------------------------------
 %-- Language and Type
@@ -135,6 +133,7 @@
 %-- Code environment and verbatim
 %------------------------------------------------------------------------------
 \usepackage{listings}
+\lstset{basicstyle=\ttfamily}
 \newcommand{\code}[1]{\lstinline|#1|}
 
 %------------------------------------------------------------------------------
