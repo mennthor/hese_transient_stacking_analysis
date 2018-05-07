@@ -70,14 +70,14 @@ This introduces some numerical errors because the smoothing happens in spherical
 The artifacts are removed by setting the resulting map to zero outside the $6\sigma$ level, which is obtained from Wilks' theorem due to a lack of a proper test statistic.
 See fig.~(\ref{fig:source_map_handling}) for the smoothing process, the sum of all smoothed normal space PDF maps can be seen in fig.~(\ref{fig:hese_maps_all}).
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \includegraphics[width=.9\textwidth]{inc/source_maps/summed_maps.png}
   \caption{All 22 HESE scan maps in equatorial coordinates. Each map has been converted from log-Likelihood to normal space and smoothed with a 1 degree Gaussian kernel.}
   \label{fig:hese_maps_all}
 \end{figure}
 
-\begin{figure}[h] % 2 x 2 grid
+\begin{figure}[htbp] % 2 x 2 grid
   \centering
   \begin{subfigure}[c]{0.49\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/180108-HESE_map_raw_and_smoothed/HESE_contours_Floyd_raw_lin.png}
@@ -114,7 +114,15 @@ Matching to the selection of the HESE sources these include
   \item Point Source Tracks \code{'IC86, 2012-2014'}
   \item GFU \code{"IC86, 2015"}
 \end{itemize}
-More information on the PS and GFU datasets can be found at the respective analysis wikis: \href{https://icecube.wisc.edu/~coenders/html/build/html/ic86-bdt/muonL3.html}{PS} and \href{https://icecube.wisc.edu/~tkintscher/internal/gfu_doc/eventselection.html}{GFU}.
+The data is standardized in a \code{numpy.recordarray} form and the needed attributes used in this analysis are: \code{'ra'}, \code{'dec'}, \code{'logE'}, \code{'sigma'}, \code{'time'}, where \code{'sigma'} is the circularized directional reconstruction uncertainty in radian, already pull corrected so the energy dependent median lies approximately at $1.1774$, because the uncertainty is modelled by a 2D symmetric Gaussian.
+\code{'logE'} is an energy proxy in $\log_{10}(E/\si{\GeV})$ and \code{'time'} is the event start time in MJD days, all angles are in radian.
+The underlying reconstruction method can differ between the samples and can be found in detail together with more information on the PS and GFU analysis wikis: \href{https://icecube.wisc.edu/~coenders/html/build/html/ic86-bdt/muonL3.html}{PS} and \href{https://icecube.wisc.edu/~tkintscher/internal/gfu_doc/eventselection.html}{GFU}.
+
+The corresponding MC sets additionally contain the attributes \code{'trueRa'}, \code{'trueDec'}, \code{'trueE'}, \code{'ow'} with the energy in \si{\GeV} and the angles in radian.
+\code{'ow'} is the neutrino generator (nugen) \emph{OneWeight} attribute used to weight MC events to a desired target flux.
+More info on that can be found at \href{http://software.icecube.wisc.edu/documentation/projects/weighting/tutorial.html#calculating-an-effective-area-with-neutrinogenerator}{the weighting module docs}, at \href{http://software.icecube.wisc.edu/documentation/projects/neutrino-generator/weightdict.html#oneweight}{the nugen docs} or at \href{https://docushare.icecube.wisc.edu/dsweb/Get/Document-44937/OneWeight.pdf}{this note from Chad Finley} on the use of \emph{OneWeight}.
+Note that \emph{OneWeight} is already divided by the number of files and events per file in the mentioned data sets.
+
 The data is split in on- and off-time data for blindness reasons, by cutting out the largest time window around all sources.
 Usually for time independent analyses the assumption is, that there is far less signal then data in the sample and scrambled data is used to build PDFs for the LLH.
 For the tested, small time windows here, we can go a step further and cut out a little bit of data, not biasing the PDF building process, but making sure no sought after signal is incorporated into it.
@@ -181,14 +189,14 @@ The steps are:
 
 See fig.~(\ref{fig:dec_bin_rate_models}) for the fitted rate models, fig.~(\ref{fig:param_splines}) for the parameter splines and fig.~(\ref{fig:model_bg_pdfs}) for the resulting background PDFs.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \includegraphics[width=.9\textwidth]{inc/rate_models_per_dec_bin/IC86_2012-2014.png}
   \caption{Rate model fits to declination bins for sample IC86, 2012–2014}
   \label{fig:dec_bin_rate_models}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[c]{0.49\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/param_splines/IC86_2012-2014_amp.png}
@@ -203,7 +211,7 @@ See fig.~(\ref{fig:dec_bin_rate_models}) for the fitted rate models, fig.~(\ref{
   \label{fig:param_splines}
 \end{figure}
 
-\begin{figure}[h] % 4 x 3 grid
+\begin{figure}[htbp] % 4 x 3 grid
   \centering
   \begin{subfigure}[c]{0.24\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/sindec_splines/IC86_2012-2014_src_00.png}
@@ -269,7 +277,7 @@ To smoothen out some fluctuations from low statistics in the data histogram, the
 As a last step a \code{scipy.interpolate.RegularGridInterpolator} is used to obtain continuous ratio values for all $\sin\delta$, energy pairs.
 See fig.~(\ref{fig:energy_pdf_ratios}) for an example background PDF ratio and the intermediate fill step.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[c]{0.49\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/llh_model/energy_pdfs/IC79.png}
@@ -298,7 +306,7 @@ As mentioned previously the background event estimations $\braket{n_{B,k}}$ are 
 The values are obtained by integrating the rate model for the whole sky over each sources time window.
 The rate model fits can be seen in fig.~(\ref{fig:rate_allsky}).
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[c]{0.49\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/rate_models_and_rates/IC79.png}
@@ -327,7 +335,7 @@ From these splines the weights are constructed per sample.
 The multi Likelihood renormalizes the weights to a global sum of 1.
 See fig.~(\ref{fig:stacking_src_weights_spl}) for the splines and MC histograms.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}[c]{0.49\textwidth}
     \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC79.png}
@@ -345,7 +353,7 @@ See fig.~(\ref{fig:stacking_src_weights_spl}) for the splines and MC histograms.
     \includegraphics[width=0.9\textwidth]{inc/llh_model/stacking_src_weights/IC86_2015.png}
   \end{subfigure}
 
-  \caption{MC histograms in $\sin\delta$ weighted to an $E^{-2}$ power law flux normalized to th full $\sin\delta$ range. Stacking weights are computed per sample and renormalized for the multi sample Likelihood.}
+  \caption{MC histograms in $\sin\delta$ weighted to an $E^{-2}$ power law flux normalized to the full $\sin\delta$ range. Stacking weights are computed per sample and renormalized for the multi sample Likelihood. The binning is chosen to have as much equidistant bins, so that at least 500 events (re-sampled from physics weight to obtain an un-weighted sample) are in any bin. The spline fit factors in the usual $\sqrt N$ errors per bin.}
   \label{fig:stacking_src_weights_spl}
 \end{figure}
 
@@ -412,7 +420,7 @@ Re-inserting into $\Lambda$ gives us the best fit which is not further simplifie
 
 With the help of \code{Mathematica} we can also show, that for two events it is event sufficient to only compute the solution if the sum of both signal over background ratios is $R_1 + R_2 > 1$.
 See fig.~(\ref{fig:mathematica_ts}) for the interesting region.
-\begin{figure}[h]
+\begin{figure}[htbp]
   \centering
   \includegraphics[width=.4\textwidth]{inc/analytic_TS_mathematica/analytic_TS_mathematica.png}
   \caption{Region where the best fit test statistic is nonzero for the two-events-left-case. $a, b$ correspond to $R_1, R_2$. Only if the sum $R_1 + R_2 > 1$, the test statistic is non-zero.}
@@ -422,40 +430,171 @@ See fig.~(\ref{fig:mathematica_ts}) for the interesting region.
 
 
 \section{Analysis Performance}
+Using MC to simulate a source flux we can estimate the analysis performance before unblinding and also set upper limits depending on the unblinding result.
 
 \subsection{Background Trial Injection}
 To build the background only test statistic needed for p-value calculation, a new random data set is created each trial and fit with the Likelihood test statistic.
 Background trials are done independent for each time window and for each window $10^8$ trials are done to get enough non-zero test statistic values in the low background regime (small time windows).
-In general scrambled and resampled off-time data is used to estimate the background contribution.
+In general, scrambled and resampled off-time data is used to estimate the background contribution.
+This is justified because the full on-time region was cut our before any analysis steps.
 
-Each trial data set is created as follows:
+Each background trial data set is created as follows:
 \begin{itemize}
   \item Draw the events to inject for each source from the fixed background expectations from a Poisson distribution.
   \item For the requested number of events per source, re-sample off-time data events according to the previously build spline PDF per source.
+  This means for each source a different declination distribution is re-sampled from data.
   \item Replace the right-ascension values with random, uniformly distributed values.
   This assumes a flat azimuth distribution, which might not hold to full extend for the smallest time windows, but is neglected here.
   \item Sample new times in MJD from the rate model per source.
   The parameters are obtained from the previously fit parameter splines.
   For the same arguments as used before in the LLH model, we sample uniformly in the time windows instead of doing a costly rejection sampling of the sine function.
   Because of the small amplitude this is virtually the same event for the largest time window.
+  \item The rest of the event attributes, namely the energy proxy, the declination $\delta$ and the circularized directional reconstruction error $\sigma$ are kept as is from the re-sampled data.
 \end{itemize}
 
-The selected \textcolor{nordred}{\huge hier weiter}
+The selected data are then fit with the likelihood explained previously.
+This builds a background only test statistic distribution per time window.
 
 \subsection{Signal Trial Injection}
-TODO
+If we want to estimate how well the analysis performs beforehand or to estimate upper limits after unblinding a null result we need to simulate a measurement with actual signal.
+This is done by injecting signal-like events from MC data sets weighted to the desired astrophysical flux expected from the sources.
+Here all sources are expected to emit the same intrinsic flux.
+To estimate a best case scenario and a more realistic performance estimation due to the uncertain source locations, we use two injection modes.
+
+The injection mode is a \enquote{per-burst-mode}, similar to GRB analyses.
+This corresponds to a signal that is not depending on the actual length of the emitter's time windows, per transient event a total number of events are emitted.
+This leads to the weights per event $i$ selected at source $j$
+\begin{equation}
+  w_i^{(j)} = w_{\mathrm{theo},j} \cdot
+              \frac{\mathrm{ow}_i \cdot \phi(E_{\mathrm{true},i})}
+                   {\Omega_j}
+\end{equation}
+where $w_{\mathrm{theo},j}$ is an intrinsic (theoretical) source weighting, $\phi(E_{\mathrm{true},i}) = \phi_0 * f(E_{\mathrm{true},i})$ is the new flux we want to weight to (with flux normalization $\phi_0$) and $\Omega_j$ is the solid angle we selected events from the diffuse MC for each source from.
+The solid angle is divided out because we inject a point source flux so the the resulting weights are unitless as the flux units are \si{\per\GeV\per\steradian\per\cm\squared}
+Because we weight injected signal per burst, we don't multiply with lifetime here and the flux is also not dependent on time.
+Sometimes this is referred to as \enquote{fluence} rather than flux then.
+
+\subsubsection*{Point Source Mode}
+This is the same mode used to estimate performance in the skylab software and usually used for the standard time-integrated searches.
+A single injector is used to inject events to sources within a single sample.
+A multi injector instance manages and samples from multiple single injectors.
+\begin{itemize}
+  \item For each source MC events are pre-selected in a narrow declination band around each source declination to make sure only events representative for the declination are treated at signal.
+  \item For the selected events the proper flux weights are computed as described above.
+  All weights are then normalized over the whole pool of events.
+  \item For the actual injection, the events are drawn randomly from the whole selected pool.
+  The drawn events are then rotated to their corresponding source position in the true coordinates, simulation the spread around that position from the reconstruction uncertainty of each event.
+  \item Lastly new time attributes are chosen from a uniform distribution for each sources time window for all events drawn for each source.
+\end{itemize}
+The sampled events are stripped from all MC information, appended to the background data, also drawn for the trial and the LLH is fitted to create a test statistic .
+
+This mode is the best possible case we can achieve for this analysis, because we inject exactly the same as we test.
+
+\subsubsection*{Healpy Injection Mode}
+To account for the rather uncommon case in point source searches, that our source positions themselves are not exactly known, because they are also reconstructed event positions, there is another injection mode which used the full reconstruction likelihood scan map from each HESE event to simulate the unknown source position on average.
+The general method is the same as above, but for each trial, a new point source position is drawn for each source from its likelihood scan map.
+Then from these new positions the same method as above is applied for each trial.
+The pool of MC events injected at each source is also selected in a declination band around each source.
+The band's width is obtained by the scanning the $3\sigma$ contour around each source and selecting events between the minimum and maximum declinations from the contour.
+See fig.~(\ref{fig:healpy_injection}) for an example injection.
+
+This injection mode worsens the analysis performance but is a more realistic limit estimation.
+Because we draw a new source position every trial, this represents a somewhat average case, where we don't know all the source positions but the probability of all being way of is small.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=.9\textwidth]{inc/healpy_injection/zoomed_with_map/IC86_2012-2014_src_09.png}
+  \caption{Healpy mode injection example. The shaded region is the declination band for the MC pool selection for this source, defined by the $3\sigma$ contour of the source reconstruction map. Each trial a new source position is drawn. The actual injected events are not shown.}
+  \label{fig:healpy_injection}
+\end{figure}
 
 \subsection{Background Trial Distributions}
-TODO
+For each time window $10^8$ background trials where done.
+The small time windows have a lot of zero trials due to an effectively zero background expectation.
+For the larger time windows we see a transformation of the test statistic shape to a $\chi^2$ distribution with approximately 1 degree of freedom, as usually seen in the time integrated analysis for a single $n_S$ fit parameter.
+
+To have a continuous representation of the test statistic especially for low p-values, we use the generated trials in two ways.
+Because we generated a lot of trials, we can use the empirical PDF up to a threshold $t^*$ directly to obtain p-values.
+After the threshold, an exponential PDF is fitted to the tail of the distribution to smooth out the low statistics.
+For the large test statistic values the distribution seems to tend to a $\chi^2$ distribution so an exponential tails describes that well.
+To find an appropriate threshold $t^*$ a grid of threshold in steps $0.1"$ of test statistics is scanned over a range from $3\sigma$ to $5.5\sigma$ of the empirical distribution to have enough statistics left and cut not too deep in the good statistics region.
+The exponential part is fitted for each threshold and the match between the model and the tail distribution is evaluated using a Kolmogorov-Smirnof-Test.
+The threshold, where the KS-Test has a p-value greater than $0.5$ the first time coming form lower test statistics values is taken as the best threshold.
+The resulting combined model is stored as JSON on disk and can be loaded ready to use with a custom class.
+
+Fig.~(\ref{fig:bg_ts_models}) shows example background only test statistics together with the survival function and the threshold scan and KS-Test p-values.
+The plots for all time windows are in the appendix.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_00.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_20.png}
+  \end{subfigure}
+  \caption{Background only trials for 2 example time windows. The left subplot show the resulting combined empirical and exponential model. The middle plot the p-value distribution and the right one the p-values for the KS-Test scan.}
+  \label{fig:bg_ts_models}
+\end{figure}
+
 
 \subsection{Performance}
-\subsubsection{Best Case}
-TODO
-\subsubsection{Realistic Case}
-TODO
+The analysis performance is estimated by injecting a mean number of events for a given grid of mean signal strength values.
+These trials are used to fit a generic $\chi^2$ CDF to obtain the desired performance values over a given test statistic value from pure background trials.
+The advantage of this method is, that trials can be reused to evaluate multiple performance definitions if the statistics are high enough.
+Here \num{20000} trials were done at each grid point, which is enough for the usual definitions of least detectable signal ($90\%$ signal over zero background test statistic), sensitivity ($90\%$ signal over $3\sigma$ background) and discovery potential (usually $50\%$ signal over $5\sigma$ background, here $90\%$ was used instead).
+Also the fits can be visually inspected to see if any errors occurred during the minimization or trial process.
+Errors could be obtained via bootstrapping and refitting, but is neglected here due to the high number of trials done per grid point and the dense grid itself.
+
+After the grid scan, the number of injected events can be converted by the signal injector module to an actual flux.
+This conversion follows from the simple relation between the flux and the weights, as shown earlier,
+\begin{align}
+  n &= \sum_j \sum_i w_i^{(j)}
+    = \sum_j \sum_i w_{\mathrm{theo},j} \cdot
+              \frac{\mathrm{ow}_i \cdot \phi_0 f(E_{\mathrm{true},i})}
+                   {\Omega_j}
+    = \phi_0 * \tilde{w}_i^{(j)} \\
+  \Leftrightarrow \phi_0 &= n / \tilde{w}_i^{(j)} \mperiod
+\end{align}
+
+See fig.~(\ref{fig:performance_chi2}) for an example $\chi^2$ fit.
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[c]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{inc/performance/ps/chi2_fits/tw_00.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{inc/performance/ps/chi2_fits/tw_20.png}
+  \end{subfigure}
+  \caption{Performance trial CDF and $\chi^2$ fit results for various test statistic signal trial combinations.}
+  \label{fig:performance_chi2}
+\end{figure}
+
+\subsubsection*{Performance Best Case}
+The point source like injection mode has been used here to obtain the best case analysis performance.
+See fig.~(\ref{fig:performance_ps_flux}) for the limits per time window.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{inc/performance/ps/perf_flux.png}
+  \caption{Performance vs. time window for several combinations of signal test statistic over pure background test statistic for the best case scenario.}
+  \label{fig:performance_ps_flux}
+\end{figure}
+
+\subsubsection*{Performance Realistic Case}
+The healpy map injection mode has been used here to obtain analysis performances that include the uncertainty of the tested source positions.
+This worsens the sensitivity about a factor $\sim 3$
+See fig.~(\ref{fig:performance_healpy_flux}) for the limits per time window.
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{inc/performance/healpy/perf_flux.png}
+  \caption{Performance vs. time window for several combinations of signal test statistic over pure background test statistic for the realistic case scenario.}
+  \label{fig:performance_healpy_flux}
+\end{figure}
+
 
 
 \section{Analysis Results}
+\emph{After unblinding.}
 
 
 
@@ -507,7 +646,7 @@ TODO
       \item Q:
         Performance for systematics data sets.
       \item A:
-        \textcolor{nordorange}{Not done yet}.
+        \textcolor{nordorange}{Not done}.
         I'm not sure how to do this for the complete analysis.
         For the 7 year PS analysis, the systematics sets were processed for the new selection after IC86 2011 only and also only tested on that subset.
         I could do the same, but that would mean I had to drop all the sources in the IC79 and IC86 sample.
@@ -516,7 +655,7 @@ TODO
       \item Q:
         Test time window between the ones actually tested as a cross check.
       \item A:
-        \textcolor{nordorange}{Not done yet}, but I think there's not much to see there.
+        \textcolor{nordorange}{Not done}, but I think there's not much to see there.
         If required, I can run some BG trials for time windows in between.
   \end{itemize}
 
@@ -553,12 +692,93 @@ TODO
 
 \section{Additional Plots}
 
-\begin{figure}[h]
+\subsubsection{Rates and Sources}
+\begin{figure}[htbp]
   \centering
   \includegraphics[width=.9\textwidth]{inc/sources_and_rates/rate_all_samples.png}
   \caption{All runs in the off data samples together with the 22 HESE sources per sample. The rates differ per sample due to different event selections. Seasonal variations cause the sinus like variations per year.}
   \label{fig:rate_all_samples}
 \end{figure}
 
+\subsubsection{Background Test Statistics}
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_00.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_01.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_02.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_03.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_04.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_05.png}
+  \end{subfigure}
+  \caption{Background trial test statistics for time window 0 to 5. The left subplot show the resulting combined empirical and exponential model. The middle plot the p-value distribution and the right one the p-values for the KS-Test scan.}
+\end{figure}
+
+\begin{figure}[htpb]
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_06.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_07.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_08.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_09.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_10.png}
+  \end{subfigure}
+  \caption{Background trial test statistics for time window 6 to 10. The left subplot show the resulting combined empirical and exponential model. The middle plot the p-value distribution and the right one the p-values for the KS-Test scan.}
+\end{figure}
+
+\begin{figure}[htpb]
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_11.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_12.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_13.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_14.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_15.png}
+  \end{subfigure}
+  \caption{Background trial test statistics for time window 11 to 15. The left subplot show the resulting combined empirical and exponential model. The middle plot the p-value distribution and the right one the p-values for the KS-Test scan.}
+\end{figure}
+
+\begin{figure}[htpb]
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_16.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_17.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_18.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_19.png}
+  \end{subfigure}
+  \begin{subfigure}[c]{\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/bg_pdfs/bg_pdfs/bg_pdf_tw_20.png}
+  \end{subfigure}
+  \caption{Background trial test statistics for time window 16 to 20. The left subplot show the resulting combined empirical and exponential model. The middle plot the p-value distribution and the right one the p-values for the KS-Test scan.}
+\end{figure}
 
 \end{document}
