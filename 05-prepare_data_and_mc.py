@@ -9,19 +9,20 @@
    kept as off-data to build models and injectors from.
 3) Remove HESE like events identified in `04-check_hese_mc_ids` from the
    simulation files.
+4) Remove HESE events from on time data sets.
 """
 
 import os
 import json
 import gzip
 import numpy as np
+from astropy.time import Time as astrotime
 
 from skylab.datasets import Datasets
 
 from _paths import PATHS
 from _loader import source_list_loader, time_window_loader, runlist_loader
 from myi3scripts import arr2str
-from tdepps.utils import create_run_dict
 
 
 def remove_hese_from_mc(mc, heseids):
@@ -160,9 +161,10 @@ for name in all_sample_names:
     name = name.replace(", ", "_")
 
     # Remove events before first and after last run per sample
-    rundict = create_run_dict(runlists[name])
-    first_run = np.amin(rundict["good_start_mjd"])
-    last_run = np.amax(rundict["good_stop_mjd"])
+    first_run = min(map(lambda d: astrotime(d["good_tstart"],
+                                            format="iso").mjd, runlists[name]))
+    last_run = max(map(lambda d: astrotime(d["good_tstop"],
+                                           format="iso").mjd, runlists[name]))
     is_inside_runs = (exp["time"] >= first_run) & (exp["time"] <= last_run)
     print("  Removing {} / {} events outside runs.".format(
         np.sum(~is_inside_runs), len(exp)))
@@ -178,6 +180,10 @@ for name in all_sample_names:
         heseids = json.load(_file)
         print("  Loaded HESE like MC IDs from :\n    {}".format(_fname))
     is_hese_like = remove_hese_from_mc(mc, heseids)
+
+    # Remove HESE events from ontime data
+    exp_ontime = exp[~is_offtime]
+    raise NotImplementedError("Remove HESE from ontime data!")
 
     # Save, also in npy format
     print("  Saving on, off and non-HESE like MCs at:")

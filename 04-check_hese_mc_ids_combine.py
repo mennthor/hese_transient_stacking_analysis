@@ -22,10 +22,7 @@ except ImportError:
 from _paths import PATHS
 from myi3scripts import arr2str
 
-# Use outfiles from master branch here, nothing changed in that part
-inpath = os.path.join(PATHS.data.replace("original_hese", "master"),
-                      "check_hese_mc_ids")
-
+inpath = os.path.join(PATHS.data, "check_hese_mc_ids")
 outpath = os.path.join(PATHS.local, "check_hese_mc_ids")
 if os.path.isdir(outpath):
     res = raw_input("'{}' already exists. ".format(outpath) +

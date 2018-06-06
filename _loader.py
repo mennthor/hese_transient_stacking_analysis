@@ -6,11 +6,14 @@ change the loading part here once.
 """
 
 import os as _os
+import re as _re
 import json as _json
+import gzip as _gzip
 import numpy as _np
 from glob import glob as _glob
 
 from myi3scripts import arr2str as _arr2str
+import tdepps.utils.stats as _stats
 
 from _paths import PATHS as _PATHS
 
@@ -53,6 +56,52 @@ def time_window_loader(idx=None):
         return dt0[idx], dt1[idx]
 
 
+def bg_pdf_loader(idx=None):
+    """
+    Loads background trial test statisitc distribution objects of type
+    ``tdepps.utils.stats.emp_with_exp_tail_dist``.
+
+    Parameters
+    ----------
+    idx : array-like or int or 'all' or ``None``, optional
+        Which time window to load the background PDF for. If ``'all'``, all are
+        loaded, if ``None`` a list of valid indices is returned.
+        (default: ``None``)
+
+    Returns
+    -------
+    pdfs : dict or list
+        Dict with indices as key(s) and the distribution object(s) as value(s).
+        If ``idx`` was ``None`` an array of valid indices is returned.
+    """
+    folder = _os.path.join(_PATHS.local, "bg_pdfs")
+    files = sorted(_glob(_os.path.join(folder, "*")))
+    file_names = map(_os.path.basename, files)
+
+    if (idx is None) or (idx == "all"):
+        regex = _re.compile(".*tw_([0-9]*)\.json\.gz")
+        all_idx = []
+        for fn in file_names:
+            res = _re.match(regex, fn)
+            all_idx.append(int(res.group(1)))
+        all_idx = _np.sort(all_idx)
+        if idx is None:
+            return all_idx
+    else:
+        all_idx = _np.atleast_1d(idx)
+
+    pdfs = {}
+    for idx in all_idx:
+        file_id = file_names.index("bg_pdf_tw_{:02d}.json.gz".format(idx))
+        fname = files[file_id]
+        print("Load bg PDF for time window {:d} from:\n  {}".format(idx,
+                                                                    fname))
+        with _gzip.open(fname) as json_file:
+            pdfs[idx] = (_stats.emp_with_exp_tail_dist.from_json(json_file))
+
+    return pdfs
+
+
 def source_list_loader(names=None):
     """
     Load source lists.
@@ -87,6 +136,35 @@ def source_list_loader(names=None):
     print("Loaded source list from:\n  {}".format(source_file))
     print("  Returning sources for sample(s): {}".format(_arr2str(names)))
     return {name: sources[name] for name in names}
+
+
+def source_map_loader(src_list):
+    """
+    Load the reco LLH map for a given source from the source list loader.
+
+    Parameters
+    ----------
+    src_list : list of dicts, shape (nsrcs)
+        List of source dicts, as provided by ``source_list_loader``. Each dict
+        must have key ``'map_path'``.
+
+    Returns
+    -------
+    healpy_maps : array-like, shape (nsrcs, npix)
+        Healpy map belonging to the given source for each source in the same
+        order as in ``src_list``.
+    """
+    healpy_maps = []
+    for src in src_list:
+        fpath = src["map_path"]
+        print("Loading map for source: {}".format(
+            _os.path.basename(fpath)))
+        with _gzip.open(fpath) as f:
+            src = _json.load(f)
+
+        healpy_maps.append(_np.array(src["map"]))
+
+    return _np.atleast_2d(healpy_maps)
 
 
 def runlist_loader(names=None):

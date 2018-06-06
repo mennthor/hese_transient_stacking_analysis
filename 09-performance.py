@@ -1,12 +1,17 @@
 # coding: utf-8
 
 """
-Single job of background only trials.
+Single job of performance trials.
 Loads data and settings and builds the models, likelihoods and injectors to do
 the trials with.
+Signal is injected with multiple means to robustly estimate the performance by
+fitting a generic but matching chi2 distribution to the trial results.
+
+This is the performance for a point source injection, so the best possible case
+as we don't consider the source positional uncertainties in the LLHs.
 """
 
-import gc  # Manual garbage collection
+import gc
 import os
 import json
 import gzip
@@ -16,7 +21,9 @@ import numpy as np
 from tdepps.utils import make_src_records
 from tdepps.grb import GRBLLH, GRBModel, MultiGRBLLH
 from tdepps.grb import TimeDecDependentBGDataInjector
-from tdepps.grb import MultiBGDataInjector
+from tdepps.grb import UniformTimeSampler, SignalFluenceInjector
+from tdepps.grb import HealpySignalFluenceInjector
+from tdepps.grb import MultiBGDataInjector, MultiSignalFluenceInjector
 from tdepps.grb import GRBLLHAnalysis
 import tdepps.utils.phys as phys
 from _paths import PATHS
@@ -49,16 +56,17 @@ def flux_model_factory(model, **model_args):
 parser = argparse.ArgumentParser(description="hese_stacking")
 parser.add_argument("--rnd_seed", type=int)
 parser.add_argument("--ntrials", type=int)
-parser.add_argument("--job_id", type=str)
 parser.add_argument("--tw_id", type=int)
+parser.add_argument("--sig_inj", type=str)
 args = parser.parse_args()
 rnd_seed = args.rnd_seed
 ntrials = args.ntrials
-job_id = args.job_id
 tw_id = args.tw_id
+sig_inj_type = args.sig_inj
 
 rndgen = np.random.RandomState(rnd_seed)
 dt0, dt1 = _loader.time_window_loader(tw_id)
+time_sam = UniformTimeSampler(random_state=rndgen)
 
 # Load files and build the models one after another to save memory
 bg_injs = {}
@@ -84,6 +92,27 @@ for key in sample_names:
     bg_inj_i.fit(X=exp_off, srcs=srcs_rec, run_list=runlist)
     bg_injs[key] = bg_inj_i
 
+    # Setup Signal injector
+    fmod = opts["sig_inj_opts"].pop("flux_model")
+    flux_model = flux_model_factory(fmod["model"], **fmod["args"])
+    # Decide what type of injection we need
+    if sig_inj_type == "healpy":
+        # Always inject the best fit source position, exactly as tested
+        opts["sig_inj_opts"]["inj_sigma"] = 3.
+        src_maps = _loader.source_map_loader(src_list=srcs)
+        sig_inj_i = HealpySignalFluenceInjector(
+            flux_model, time_sampler=time_sam, inj_opts=opts["sig_inj_opts"])
+        sig_inj_i.fit(srcs_rec, src_maps=src_maps, MC=mc)
+        del src_maps
+    elif sig_inj_type == "ps":
+        # Inject source position from prior map, worsening performance
+        sig_inj_i = SignalFluenceInjector(flux_model, time_sampler=time_sam,
+                                          inj_opts=opts["sig_inj_opts"])
+        sig_inj_i.fit(srcs_rec, MC=mc)
+    else:
+        raise ValueError("`sig_inj_type` can be 'ps' or 'healpy'.")
+    sig_injs[key] = sig_inj_i
+
     # Setup LLH model and LLH
     fmod = opts["model_energy_opts"].pop("flux_model")
     flux_model = flux_model_factory(fmod["model"], **fmod["args"])
@@ -101,34 +130,56 @@ for key in sample_names:
 multi_bg_inj = MultiBGDataInjector()
 multi_bg_inj.fit(bg_injs)
 
+multi_sig_inj = MultiSignalFluenceInjector(random_state=rndgen)
+multi_sig_inj.fit(sig_injs)
+
 multi_llh_opts = _loader.settings_loader("multi_llh")["multi_llh"]
 multi_llh = MultiGRBLLH(llh_opts=multi_llh_opts)
 multi_llh.fit(llhs=llhs)
 
-ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=None)
+ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=multi_sig_inj)
 
-# Do the background trials
+# Do the performance trials
 print("Time window ID is: {}".format(tw_id))
-print(":: Starting {} background trials ::".format(ntrials))
+print(":: Starting performance trials ::")
+# These can be changed later with the generated trials, just set them to
+# 90% over ts=0 to init it with something
+beta = 0.9
+ts_val = 0.
 # Seed close to zero, which is close to the minimum for most cases
-trials, nzeros, _ = ana.do_trials(n_trials=ntrials, n_signal=None, ns0=0.1,
-                                  full_out=False)
+ns0 = .1
+
+# Scan dense and large enough region for discovery potentials
+if sig_inj_type == "ps":
+    mu_sig = np.r_[0.1, np.arange(0.5, 15.5, 0.5)]
+elif sig_inj_type == "healpy":
+    mu_sig = np.r_[0.1, 0.5, np.arange(1., 30., 1.)]
+    if tw_id > 16:
+        mu_sig = np.r_[0.1, 0.5, np.arange(1., 60., 2.)]
+
+perf = ana.performance(ts_val=ts_val, beta=beta, mus=mu_sig, ns0=ns0,
+                       n_batch_trials=ntrials)
 print(":: Done ::")
 
+# Convert ndarrays and lists of ndarrays to lists of lists for JSON
+out = {
+    "beta": perf["beta"],
+    "ninj": [arr.tolist() for arr in perf["ninj"]],
+    "cdfs": perf["cdfs"].tolist(),
+    "mus": perf["mus"].tolist(),
+    "mu_bf": perf["mu_bf"],
+    "tsval": perf["tsval"],
+    "pars": perf["pars"].tolist(),
+    "ns": [arr.tolist() for arr in perf["ns"]],
+    "ts": [arr.tolist() for arr in perf["ts"]],
+    }
+
 # Save as JSON
-outpath = os.path.join(PATHS.data, "bg_trials")
+outpath = os.path.join(PATHS.data, "performance_trials_" + sig_inj_type)
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
-out = {"ns": trials["ns"].tolist(),
-       "ts": trials["ts"].tolist(),
-       "nzeros": nzeros,
-       "time_window": [dt0, dt1],
-       "time_window_id": tw_id,
-       "rnd_seed": rnd_seed,
-       "ntrials": ntrials}
-
-fname = os.path.join(outpath, "tw_{:02d}_job_{}.json.gz".format(tw_id, job_id))
+fname = os.path.join(outpath, "tw_{:02d}.json.gz".format(tw_id))
 with gzip.open(fname, "w") as outfile:
-    json.dump(out, fp=outfile, indent=2)
+    json.dump(out, fp=outfile, indent=1)
     print("Saved to:\n  {}".format(fname))

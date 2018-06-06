@@ -60,6 +60,7 @@ for key in sample_names:
         "rate_rebins": rate_rebins.tolist(),
         "spl_s": spl_s,
         "n_scan_bins": 25,
+        "n_data_evts_min": 100,
         }
 
     # :: Signal injector ::
@@ -83,17 +84,18 @@ for key in sample_names:
     # :: LLH model ::
     # Use same settings as in injector. Use kent as signal PDF, discard events
     # more than 5sigma away from each source in LLH calculation
-    model_spatial_opts = dict(
-        bg_inj_opts.items(),
-        select_ev_sigma=5.,
-        kent=True
-        )
+    model_spatial_opts = {
+        "sindec_bins": sindec_bins.tolist(),
+        "rate_rebins": rate_rebins.tolist(),
+        "spl_s": spl_s,
+        "n_scan_bins": 25,
+        "kent": True,
+        "select_ev_sigma": 5.,
+        "n_mc_evts_min": 500,
+        }
     # This is kind of arbitrary, but seems to produce robust PDFs
     logE_bins = np.linspace(
-        np.floor(np.amin(mc["logE"])),
-        np.ceil(np.amax(mc["logE"])),
-        30
-        )
+        np.floor(np.amin(mc["logE"])), np.ceil(np.amax(mc["logE"])), 30)
     model_energy_opts = {
         "bins": [sindec_bins.tolist(), logE_bins.tolist()],
         "flux_model": flux_model_opts,

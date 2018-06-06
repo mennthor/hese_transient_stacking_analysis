@@ -1,9 +1,11 @@
 # coding: utf-8
 
 """
-Single job of background only trials.
+Single job of background only post-trials.
 Loads data and settings and builds the models, likelihoods and injectors to do
 the trials with.
+
+First part build models and injectors exactly as in BG trials.
 """
 
 import gc  # Manual garbage collection
@@ -12,6 +14,7 @@ import json
 import gzip
 import argparse
 import numpy as np
+from copy import deepcopy
 
 from tdepps.utils import make_src_records
 from tdepps.grb import GRBLLH, GRBModel, MultiGRBLLH
@@ -50,15 +53,14 @@ parser = argparse.ArgumentParser(description="hese_stacking")
 parser.add_argument("--rnd_seed", type=int)
 parser.add_argument("--ntrials", type=int)
 parser.add_argument("--job_id", type=str)
-parser.add_argument("--tw_id", type=int)
 args = parser.parse_args()
 rnd_seed = args.rnd_seed
 ntrials = args.ntrials
 job_id = args.job_id
-tw_id = args.tw_id
 
 rndgen = np.random.RandomState(rnd_seed)
-dt0, dt1 = _loader.time_window_loader(tw_id)
+# Load the largest time window for the injector
+dt0, dt1 = _loader.time_window_loader(-1)
 
 # Load files and build the models one after another to save memory
 bg_injs = {}
@@ -107,28 +109,35 @@ multi_llh.fit(llhs=llhs)
 
 ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=None)
 
-# Do the background trials
-print("Time window ID is: {}".format(tw_id))
-print(":: Starting {} background trials ::".format(ntrials))
-# Seed close to zero, which is close to the minimum for most cases
-trials, nzeros, _ = ana.do_trials(n_trials=ntrials, n_signal=None, ns0=0.1,
-                                  full_out=False)
+# Do the post trials
+# Prepare a list of LLHs each with a different time window to test.
+dt0s, dt1s = _loader.time_window_loader("all")
+test_llhs = []
+for i, (dt0i, dt1i) in enumerate(zip(dt0s, dt1s)):
+    print("# Build test LLH for time window pair {}".format(i))
+    test_multi_llh = deepcopy(ana.llh)
+    for key, model in test_multi_llh.model.items():
+        print("- {}".format(key))
+        model.set_new_srcs_dt(dt0=dt0i, dt1=dt1i, copy=False)
+
+    test_llhs.append(test_multi_llh)
+
+print(":: Starting {} background post trials ::".format(ntrials))
+trials = ana.post_trials(n_trials=ntrials, test_llhs=test_llhs, ns0=0.1)
 print(":: Done ::")
 
 # Save as JSON
-outpath = os.path.join(PATHS.data, "bg_trials")
+outpath = os.path.join(PATHS.data, "post_trials")
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
-out = {"ns": trials["ns"].tolist(),
-       "ts": trials["ts"].tolist(),
-       "nzeros": nzeros,
-       "time_window": [dt0, dt1],
-       "time_window_id": tw_id,
+out = {"ns": [arr.tolist() for arr in trials["ns"]],
+       "ts": [arr.tolist() for arr in trials["ts"]],
        "rnd_seed": rnd_seed,
-       "ntrials": ntrials}
+       "ntrials": ntrials,
+       "time_windows": [dt0s.tolist(), dt1s.tolist()]}  # Same order as LLHs
 
-fname = os.path.join(outpath, "tw_{:02d}_job_{}.json.gz".format(tw_id, job_id))
+fname = os.path.join(outpath, "job_{}.json.gz".format(job_id))
 with gzip.open(fname, "w") as outfile:
     json.dump(out, fp=outfile, indent=2)
     print("Saved to:\n  {}".format(fname))
