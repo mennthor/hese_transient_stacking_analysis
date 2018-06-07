@@ -23,7 +23,13 @@ def make_run_list(ev_times, ev_runids, exclude_runs=None):
     """
     Make a run list from given event times and run IDs and a list of included
     runs. Run start, stop are estimated from first and last event time in each
-    run, which is biased but there seems to be no better way.
+    run, which is biased but there seems to be no better way if the originally
+    used run lists are note available / clearly stated.
+    Runs wihich were originally considered but have no events on final level
+    are also not considered here, because the information is lost. Assuming
+    the PS samples have enough stats on final level the lost livetime shouldn't
+    be to severe. For the 2012-2014 and 2015 samples there are 40 resp. 4 runs
+    whihc only had one event and thus get zero livetime assigned here.
 
     Parameters
     ----------
