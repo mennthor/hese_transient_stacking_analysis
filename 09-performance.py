@@ -6,9 +6,6 @@ Loads data and settings and builds the models, likelihoods and injectors to do
 the trials with.
 Signal is injected with multiple means to robustly estimate the performance by
 fitting a generic but matching chi2 distribution to the trial results.
-
-This is the performance for a point source injection, so the best possible case
-as we don't consider the source positional uncertainties in the LLHs.
 """
 
 import gc
@@ -97,17 +94,19 @@ for key in sample_names:
     flux_model = flux_model_factory(fmod["model"], **fmod["args"])
     # Decide what type of injection we need
     if sig_inj_type == "healpy":
-        # Always inject the best fit source position, exactly as tested
+        # Inject source position from prior map, worsening performance
         opts["sig_inj_opts"]["inj_sigma"] = 3.
         src_maps = _loader.source_map_loader(src_list=srcs)
         sig_inj_i = HealpySignalFluenceInjector(
-            flux_model, time_sampler=time_sam, inj_opts=opts["sig_inj_opts"])
+            flux_model, time_sampler=time_sam, inj_opts=opts["sig_inj_opts"],
+            random_state=rndgen)
         sig_inj_i.fit(srcs_rec, src_maps=src_maps, MC=mc)
         del src_maps
     elif sig_inj_type == "ps":
-        # Inject source position from prior map, worsening performance
-        sig_inj_i = SignalFluenceInjector(flux_model, time_sampler=time_sam,
-                                          inj_opts=opts["sig_inj_opts"])
+        # Always inject the best fit source position, exactly as tested
+        sig_inj_i = SignalFluenceInjector(
+            flux_model, time_sampler=time_sam, inj_opts=opts["sig_inj_opts"],
+            random_state=rndgen)
         sig_inj_i.fit(srcs_rec, MC=mc)
     else:
         raise ValueError("`sig_inj_type` can be 'ps' or 'healpy'.")
