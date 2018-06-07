@@ -4,7 +4,7 @@
 Create jobfiles for `07-bg_trials.py`.
 
 ##############################################################################
-# Used seed range for bg trial jobs: [0, 100000]
+# Used seed range for bg trial jobs: [0, 200000)
 ##############################################################################
 """
 
@@ -15,6 +15,8 @@ from dagman import dagman
 from _paths import PATHS
 from _loader import time_window_loader
 
+
+MIN_SEED, MAX_SEED = 0, 200000
 
 job_creator = dagman.DAGManJobCreator(mem=2)
 job_name = "hese_transient_stacking"
@@ -54,11 +56,16 @@ job_ids = np.array(ntime_windows * ["{1:0{0:d}d}".format(lead_zeros, i) for i
 tw_ids = np.concatenate([njobs_per_tw * [tw_id] for tw_id in all_tw_ids])
 
 job_args = {
-    "rnd_seed": np.arange(10000, 10000 + njobs_tot).astype(int),
+    "rnd_seed": np.arange(MIN_SEED + 10000,
+                          MIN_SEED + 10000 + njobs_tot).astype(int),
     "ntrials": njobs_tot * [ntrials_per_job],
     "job_id": job_ids,
     "tw_id": tw_ids,
     }
+
+if (np.any(job_args["rnd_seed"] < MIN_SEED) or
+        np.any(job_args["rnd_seed"] >= MAX_SEED)):
+    raise RuntimeError("Used a seed outside the allowed range!")
 
 job_creator.create_job(script=script, job_args=job_args,
                        job_name=job_name, job_dir=job_dir, overwrite=True)
