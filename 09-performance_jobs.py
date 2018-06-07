@@ -4,14 +4,14 @@
 Create jobfiles for `09-performance.py`
 
 Arguments:
---type=ps
+--sig_inj=ps
     - Make 'perfect' trials, injecting where we test.
---type=healpy
+--sig_inj=healpy
     - Make 'effective' trials, injecting from the source priors but still
       testing at the best fit positions.
 
 ##############################################################################
-# Used seed range for performance trial jobs: [200000, 201000]
+# Used seed range for performance trial jobs: [200000, 300000)
 ##############################################################################
 """
 
@@ -23,6 +23,8 @@ from dagman import dagman
 from _paths import PATHS
 from _loader import time_window_loader
 
+
+MIN_SEED, MAX_SEED = 200000, 300000
 
 parser = argparse.ArgumentParser(description="hese_stacking")
 parser.add_argument("--sig_inj", type=str, required=True)
@@ -39,17 +41,17 @@ script = os.path.join(PATHS.repo, "09-performance.py")
 
 # Get time windows
 all_tw_ids = time_window_loader()
-ntime_windows = len(all_tw_ids)
+n_time_windows = len(all_tw_ids)
 
 # Performance trials don't need long because we only need some 10k trials
 ntrials = 20000
 njobs_per_tw = 1
 ntrials_per_job = int(ntrials / float(njobs_per_tw))
-njobs_tot = njobs_per_tw * ntime_windows
+njobs_tot = njobs_per_tw * n_time_windows
 if int(ntrials) != ntrials_per_job * njobs_per_tw:
     raise ValueError("Job settings does not lead to exactly " +
                      "{} trials".format(int(ntrials)))
-print("Preparing {} total trials per time window".format(int(ntrials)))
+print("Preparing {} trials per batch per time window".format(int(ntrials)))
 print("  - {} jobs per time window".format(njobs_per_tw))
 print("  - {} trials per job".format(ntrials_per_job))
 print("Creating {} total jobfiles for all time windows".format(int(njobs_tot)))
@@ -59,20 +61,26 @@ tw_ids = np.concatenate([njobs_per_tw * [tw_id] for tw_id in all_tw_ids])
 
 if sig_inj_type == "ps":
     job_args = {
-        "rnd_seed": np.arange(200000, 200000 + njobs_tot).astype(int),
+        "rnd_seed": np.arange(MIN_SEED, MIN_SEED + njobs_tot).astype(int),
         "ntrials": njobs_tot * [ntrials_per_job],
         "tw_id": tw_ids,
         "sig_inj": njobs_tot * ["ps"],
         }
 elif sig_inj_type == "healpy":
     job_args = {
-        "rnd_seed": np.arange(200100, 200100 + njobs_tot).astype(int),
+        "rnd_seed": np.arange(MIN_SEED + 100,
+                              MIN_SEED + 100 + njobs_tot).astype(int),
         "ntrials": njobs_tot * [ntrials_per_job],
         "tw_id": tw_ids,
         "sig_inj": njobs_tot * ["healpy"],
         }
 else:
     raise ValueError("`sig_inj_type` can be 'ps' or 'healpy'.")
+
+
+if (np.any(job_args["rnd_seed"] < MIN_SEED) or
+        np.any(job_args["rnd_seed"] >= MAX_SEED)):
+    raise RuntimeError("Used a seed outside the allowed range!")
 
 job_creator.create_job(script=script, job_args=job_args,
                        job_name=job_name, job_dir=job_dir, overwrite=True)
