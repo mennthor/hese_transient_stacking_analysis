@@ -16,6 +16,8 @@ from _paths import PATHS
 from _loader import time_window_loader
 
 
+MIN_SEED, MAX_SEED = 300000, 400000
+
 job_creator = dagman.DAGManJobCreator(mem=2)
 job_name = "hese_transient_stacking"
 
@@ -43,10 +45,14 @@ lead_zeros = int(np.ceil(np.log10(njobs_tot)))
 job_ids = np.array(["{1:0{0:d}d}".format(lead_zeros, i)
                    for i in range(njobs_tot)])
 job_args = {
-    "rnd_seed": np.arange(300000, 300000 + njobs_tot).astype(int),
+    "rnd_seed": np.arange(MIN_SEED, MIN_SEED + njobs_tot).astype(int),
     "ntrials": njobs_tot * [ntrials_per_job],
     "job_id": job_ids,
     }
+
+if (np.any(job_args["rnd_seed"] < MIN_SEED) or
+        np.any(job_args["rnd_seed"] >= MAX_SEED)):
+    raise RuntimeError("Used a seed outside the allowed range!")
 
 job_creator.create_job(script=script, job_args=job_args,
                        job_name=job_name, job_dir=job_dir, overwrite=True)
