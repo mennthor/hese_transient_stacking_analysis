@@ -33,14 +33,14 @@ def remove_hese_from_mc(mc, heseids):
     Parameters
     ----------
     mc : record-array
-        Needs names ``'Run', 'Event'``.
+        MC data, needs names ``'Run', 'Event'``.
     heseids : dict or record-array
         Needs names / keys ``'run_id', 'event_id``.
 
     Returns
     -------
     is_hese_like : array-like, shape (len(mc),)
-        Mask: ``True`` if for each event in ``mc`` that is HESE like.
+        Mask: ``True`` for each event in ``mc`` that is HESE like.
     """
     # Make combined IDs to easily match against HESE IDs with `np.isin`
     factor_mc = 10**np.ceil(np.log10(np.amax(mc["Event"])))
@@ -60,6 +60,34 @@ def remove_hese_from_mc(mc, heseids):
     print("  Found {} / {} HESE like events in MC".format(np.sum(is_hese_like),
                                                           len(mc)))
     return is_hese_like
+
+
+def remove_hese_from_on_data(exp_on, src_dicts):
+    """
+    Mask source events in ontime data sample.
+
+    Parameters
+    ----------
+    exp_on : record-array
+        Ontime data, needs names ``'Run', 'Event'``.
+
+    src_dicts : list of dicts
+        One dict per source, must have keys ``'run_id', 'event_id'``.
+
+    Returns
+    -------
+    is_hese_src : array-like, shape (len(exp_on),)
+        Mask: ``True`` where a source HESE event is in the sample.
+    """
+    is_hese_src = np.zeros(len(exp_on), dtype=bool)
+    # Check each source and combine masks
+    print("  HESE events in ontime data:")
+    for i, src in enumerate(src_dicts):
+        mask_i = ((src["event_id"] == exp_on["Event"]) &
+                  (src["run_id"] == exp_on["Run"]))
+        is_hese_src = np.logical_or(is_hese_src, mask_i)
+        print("  - Source {}: {}".format(i, np.sum(mask_i)))
+    return is_hese_src
 
 
 def split_data_on_off(ev_t, src_dicts, dt0, dt1):
@@ -111,7 +139,8 @@ def split_data_on_off(ev_t, src_dicts, dt0, dt1):
 off_data_outpath = os.path.join(PATHS.data, "data_offtime")
 on_data_outpath = os.path.join(PATHS.data, "data_ontime")
 mc_outpath = os.path.join(PATHS.data, "mc_no_hese")
-for _p in [off_data_outpath, on_data_outpath, mc_outpath]:
+out_paths = {"off": off_data_outpath, "on": on_data_outpath, "mc": mc_outpath}
+for _p in out_paths.values():
     if not os.path.isdir(_p):
         os.makedirs(_p)
 
@@ -138,7 +167,6 @@ name2heseid_file = {
     "IC86_2015": "IC86_2012-2015.json.gz"
 }
 
-out_paths = [off_data_outpath, on_data_outpath, mc_outpath]
 for name in all_sample_names:
     print("Working with sample {}".format(name))
 
@@ -173,6 +201,11 @@ for name in all_sample_names:
     # Split data in on and off parts with the largest time window
     is_offtime = split_data_on_off(exp["time"], sources[name], dt0_min, dt1_max)
 
+    # Remove HESE source events from ontime data
+    exp_on = exp[~is_offtime]
+    is_hese_src = remove_hese_from_on_data(exp_on, sources[name])
+    exp_on = exp_on[~is_hese_src]
+
     # Remove HESE like events from MC
     _fname = os.path.join(PATHS.local, "check_hese_mc_ids",
                           name2heseid_file[name])
@@ -181,14 +214,10 @@ for name in all_sample_names:
         print("  Loaded HESE like MC IDs from :\n    {}".format(_fname))
     is_hese_like = remove_hese_from_mc(mc, heseids)
 
-    # Remove HESE events from ontime data
-    exp_ontime = exp[~is_offtime]
-    raise NotImplementedError("Remove HESE from ontime data!")
-
     # Save, also in npy format
     print("  Saving on, off and non-HESE like MCs at:")
-    out_arrs = [exp[is_offtime], exp[~is_offtime], mc[~is_hese_like]]
-    for out_path, arr in zip(out_paths, out_arrs):
-        _fname = os.path.join(out_path, name + ".npy")
-        np.save(file=_fname, arr=arr)
-        print("    '{}'".format(_fname))
+    out_arrs = {"off": exp[is_offtime], "on": exp_on, "mc": mc[~is_hese_like]}
+    for data_name in out_paths.keys():
+        _fname = os.path.join(out_paths[data_name], name + ".npy")
+        np.save(file=_fname, arr=out_arrs[data_name])
+        print("    {:3s}: '{}'".format(data_name, _fname))
