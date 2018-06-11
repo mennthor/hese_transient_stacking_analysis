@@ -114,11 +114,14 @@ ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=None)
 dt0s, dt1s = _loader.time_window_loader("all")
 test_llhs = []
 for i, (dt0i, dt1i) in enumerate(zip(dt0s, dt1s)):
-    print("# Build test LLH for time window pair {}".format(i))
+    print("# Build test LLH for time window pair {}: [{:.0f}, {:.0f}]".format(
+        i, dt0i, dt1i))
     test_multi_llh = deepcopy(ana.llh)
     for key, model in test_multi_llh.model.items():
         print("- {}".format(key))
-        model.set_new_srcs_dt(dt0=dt0i, dt1=dt1i, copy=False)
+        # Switch time windows and register new model
+        new_model = model.set_new_srcs_dt(dt0=dt0i, dt1=dt1i)
+        test_multi_llh.llhs[key].model = new_model
 
     test_llhs.append(test_multi_llh)
 
