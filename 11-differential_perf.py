@@ -194,7 +194,7 @@ outpath = os.path.join(PATHS.data, "differential_perf_trials_" + sig_inj_type)
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
-fname = os.path.join(outpath, "tw_{:02d}_lo_{:1f}_hi_{:.1f}.json.gz".format(
+fname = os.path.join(outpath, "tw_{:02d}_lo_{:.1f}_hi_{:.1f}.json.gz".format(
     tw_id, log_E_nu_lo, log_E_nu_hi))
 with gzip.open(fname, "w") as outfile:
     json.dump(out, fp=outfile, indent=1)
