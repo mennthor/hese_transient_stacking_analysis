@@ -42,8 +42,8 @@ for fpath in files:
 
     # Create PDF object and scan the best threshold
     print("- Scanning best threshold")
-    emp_dist = stats.emp_with_exp_tail_dist(trials["ts"], trials["nzeros"],
-                                            thresh=np.amax(trials["ts"]))
+    emp_dist = stats.ExpTailEmpiricalDist(trials["ts"], trials["nzeros"],
+                                          thresh=np.amax(trials["ts"]))
     # Scan in a range with still good statistics, but leave the really good
     # statistics part to the empirical PDF
     lo, hi = emp_dist.ppf(q=100. * stats.sigma2prob([3., 5.5]))
@@ -56,11 +56,10 @@ for fpath in files:
     # Save whole PDF object to recoverable JSON file. Save stored data with
     # float16 precision, which is sufficient and saves space
     pdf_name = os.path.join(outpath, "bg_pdf_" + fname)
-    print("- Saving PDF object to:\n    {}".format(pdf_name))
     with gzip.open(pdf_name, "w") as f:
-        emp_dist.to_json(fp=f, dtype=np.float16, indent=0,
-                         separators=(",", ":"))
-        print("    Done")
+        f.write(emp_dist.to_json(dtype=np.float16, indent=0,
+                                 separators=(",", ":")))
+        print("- Saved PDF as JSON to:\n    {}".format(pdf_name))
 
     # Make scan plots
     plot_name = os.path.join(plotpath,
