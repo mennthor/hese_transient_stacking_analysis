@@ -15,6 +15,8 @@ import gzip
 import argparse
 import numpy as np
 
+from skylab.datasets import Datasets
+
 from tdepps.utils import make_src_records
 from tdepps.grb import GRBLLH, GRBModel, MultiGRBLLH
 from tdepps.grb import TimeDecDependentBGDataInjector
@@ -55,11 +57,19 @@ parser.add_argument("--rnd_seed", type=int)
 parser.add_argument("--ntrials", type=int)
 parser.add_argument("--tw_id", type=int)
 parser.add_argument("--sig_inj", type=str)
+parser.add_argument("--skylab_mc", action="store_true")
 args = parser.parse_args()
 rnd_seed = args.rnd_seed
 ntrials = args.ntrials
 tw_id = args.tw_id
 sig_inj_type = args.sig_inj
+skylab_mc = args.skylab_mc
+
+if skylab_mc:
+    print("# Using full skylab MC")
+    mc_info = "_skylab_MC"
+else:
+    mc_info = ""
 
 rndgen = np.random.RandomState(rnd_seed)
 dt0, dt1 = _loader.time_window_loader(tw_id)
@@ -70,6 +80,16 @@ bg_injs = {}
 sig_injs = {}
 llhs = {}
 
+# ##############################################################################
+# Test using MC with all events, also the HESE like ones
+if skylab_mc:
+    ps_tracks = Datasets["PointSourceTracks"]
+    ps_sample_names = ["IC79", "IC86, 2011", "IC86, 2012-2014"]
+    gfu_tracks = Datasets["GFU"]
+    gfu_sample_names = ["IC86, 2015"]
+    all_sample_names = sorted(ps_sample_names + gfu_sample_names)
+# ##############################################################################
+
 # Load files and build the models one after another to save memory
 sample_names = _loader.source_list_loader()
 for key in sample_names:
@@ -77,7 +97,20 @@ for key in sample_names:
     print("# :: Setup for sample {} ::".format(key))
     opts = _loader.settings_loader(key)[key].copy()
     exp_off = _loader.off_data_loader(key)[key]
-    mc = _loader.mc_loader(key)[key]
+
+    # ##########################################################################
+    if skylab_mc:
+        skylab_name = key.replace("_", ", ")
+        if skylab_name in ps_sample_names:
+            tracks = ps_tracks
+        else:
+            tracks = gfu_tracks
+        _, mc_file = tracks.files(skylab_name)
+        mc = tracks.load(mc_file)
+    else:
+        mc = _loader.mc_loader(key)[key]
+    # ##########################################################################
+
     srcs = _loader.source_list_loader(key)[key]
     runlist = _loader.runlist_loader(key)[key]
     # Process to tdepps format
@@ -174,7 +207,8 @@ out = {
     }
 
 # Save as JSON
-outpath = os.path.join(PATHS.data, "performance_trials_" + sig_inj_type)
+outpath = os.path.join(PATHS.data,
+                       "performance_trials_" + sig_inj_type + mc_info)
 if not os.path.isdir(outpath):
     os.makedirs(outpath)
 
