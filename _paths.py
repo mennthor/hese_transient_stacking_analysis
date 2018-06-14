@@ -11,7 +11,25 @@ Get all available paths with `print(PATHS)`.
 """
 
 import os as _os
+import sys as _sys
 from git import Repo as _Repo
+
+
+def check_dir(dir):
+    """
+    Checks if dirextory ``dir`` exists and ask for permission to continue if it
+    does. If ``dir`` is not existing it is created.
+    """
+    if _os.path.isdir(dir):
+        res = raw_input("'{}' already exists. ".format(dir) +
+                        "\nAllow overwrites (y/n)? ")
+        if not res.lower() in ("y", "yes"):
+            print("Abort. Script has done nothing.")
+            _sys.exit()
+        print("  Using exiting output directory '{}'.".format(dir))
+    else:
+        _os.makedirs(dir)
+        print("Created output directory '{}'.".format(dir))
 
 
 class _Paths(object):
