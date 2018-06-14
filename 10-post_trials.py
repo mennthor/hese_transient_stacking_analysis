@@ -62,7 +62,6 @@ rndgen = np.random.RandomState(rnd_seed)
 # Load the largest time window for the injector
 dt0, dt1 = _loader.time_window_loader(-1)
 
-# Load files and build the models one after another to save memory
 bg_injs = {}
 sig_injs = {}
 llhs = {}
