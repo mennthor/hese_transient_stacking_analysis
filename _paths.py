@@ -27,8 +27,6 @@ def check_dir(dir, ask=False):
             if not res.lower() in ("y", "yes"):
                 print("Abort. Script has done nothing.")
                 _sys.exit()
-        else:
-            _os.makedirs(dir)
         print("Using exiting output directory '{}'.".format(dir))
     else:
         _os.makedirs(dir)
