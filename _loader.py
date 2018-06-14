@@ -97,7 +97,7 @@ def bg_pdf_loader(idx=None):
         print("Load bg PDF for time window {:d} from:\n  {}".format(idx,
                                                                     fname))
         with _gzip.open(fname) as json_file:
-            pdfs[idx] = (_stats.emp_with_exp_tail_dist.from_json(json_file))
+            pdfs[idx] = (_stats.ExpTailEmpiricalDist.from_json(json_file))
 
     return pdfs
 
