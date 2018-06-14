@@ -86,7 +86,8 @@ def remove_hese_from_on_data(exp_on, src_dicts):
         mask_i = ((src["event_id"] == exp_on["Event"]) &
                   (src["run_id"] == exp_on["Run"]))
         is_hese_src = np.logical_or(is_hese_src, mask_i)
-        print("  - Source {}: {}".format(i, np.sum(mask_i)))
+        print("  - Source {}: {}. Dec: {:.2f} deg. logE: {} log(GeV)".format(
+            i, np.sum(mask_i), np.rad2deg(src["dec"]), exp_on[mask_i]["logE"]))
     return is_hese_src
 
 
