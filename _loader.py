@@ -56,6 +56,23 @@ def time_window_loader(idx=None):
         return dt0[idx], dt1[idx]
 
 
+def post_trial_pdf_loader():
+    """
+    Loads post trial p-value distribution object. p-values in ``-log10(p)``.
+
+    Returns
+    -------
+    pdf : ``tdepps.utils.stats.PureEmpiricalDist``instance
+        Post trial p-value PDF object with p-value distribution in
+        ``-log10(p)``.
+    """
+    inpath = _os.path.join(_PATHS.local, "post_trials_pdf",
+                           "neg_log10_post_pdf.json.gz")
+    with _gzip.open(inpath) as fp:
+        pdf = _stats.PureEmpiricalDist.from_json(fp)
+    return pdf
+
+
 def bg_pdf_loader(idx=None):
     """
     Loads background trial test statisitc distribution objects of type
