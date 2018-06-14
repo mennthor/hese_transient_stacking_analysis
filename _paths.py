@@ -15,18 +15,21 @@ import sys as _sys
 from git import Repo as _Repo
 
 
-def check_dir(dir):
+def check_dir(dir, ask=False):
     """
-    Checks if dirextory ``dir`` exists and ask for permission to continue if it
-    does. If ``dir`` is not existing it is created.
+    Checks if dirextory ``dir`` exists and ask for permission (if ``ask=True``)
+    to continue if it does. If ``dir`` is not existing it is created.
     """
     if _os.path.isdir(dir):
-        res = raw_input("'{}' already exists. ".format(dir) +
-                        "\nAllow overwrites (y/n)? ")
-        if not res.lower() in ("y", "yes"):
-            print("Abort. Script has done nothing.")
-            _sys.exit()
-        print("  Using exiting output directory '{}'.".format(dir))
+        if ask:
+            res = raw_input("'{}' already exists. ".format(dir) +
+                            "\nAllow overwrites (y/n)? ")
+            if not res.lower() in ("y", "yes"):
+                print("Abort. Script has done nothing.")
+                _sys.exit()
+        else:
+            _os.makedirs(dir)
+        print("Using exiting output directory '{}'.".format(dir))
     else:
         _os.makedirs(dir)
         print("Created output directory '{}'.".format(dir))
