@@ -169,7 +169,8 @@ multi_llh_opts = _loader.settings_loader("multi_llh")["multi_llh"]
 multi_llh = MultiGRBLLH(llh_opts=multi_llh_opts)
 multi_llh.fit(llhs=llhs)
 
-ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=multi_sig_inj)
+ana = GRBLLHAnalysis(multi_llh, multi_bg_inj, sig_inj=multi_sig_inj,
+                     random_state=rndgen)
 
 # Do the performance trials
 print("Time window ID is: {}".format(tw_id))
