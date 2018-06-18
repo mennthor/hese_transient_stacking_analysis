@@ -11,7 +11,7 @@ Arguments:
       testing at the best fit positions.
 
 ##############################################################################
-# Used seed range for performance trial jobs: [200000, 300000)
+# Used seed range for performance trial jobs: [400000, 500000)
 ##############################################################################
 """
 
@@ -24,7 +24,7 @@ from _paths import PATHS
 from _loader import time_window_loader
 
 
-MIN_SEED, MAX_SEED = 200000, 300000
+MIN_SEED, MAX_SEED = 400000, 500000
 
 parser = argparse.ArgumentParser(description="hese_stacking")
 parser.add_argument("--sig_inj", type=str, required=True)
