@@ -18,6 +18,20 @@ import tdepps.utils.stats as _stats
 from _paths import PATHS as _PATHS
 
 
+def result_loader():
+    """
+    Load the unblinding result file.
+
+    Returns
+    -------
+    results : dict
+        Result dictionary.
+    """
+    with open(_os.path.join(_PATHS.local, "unblinding", "result.json")) as fp:
+        result = _json.load(fp)
+    return result
+
+
 def time_window_loader(idx=None):
     """
     Load time window information.
