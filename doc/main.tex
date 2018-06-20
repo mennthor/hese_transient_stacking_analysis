@@ -18,8 +18,7 @@ We test for 21 generic box time windows increasing in logarithmic time from 2 se
 For the physics motivation: IceCube couldn't find a significant point source so far despite many different analysis and efforts.
 Prominent examples relevant for this is search are the \href{time integrated 7 year point source search} and the \href{HESE 6 year point source search}, both with no significant results.
 But the HESE events on their own show a clear astrophysical signal and therefore should originate from some sources.
-This analysis test if there is any clustering of lower energy neutrino events around the HESE locations, aiming to constrain various HESE emission models.
-\textcolor{nordred}{Note: The model selection is currently reviewed}.
+This analysis test if there is any clustering of lower energy neutrino events around the HESE locations.
 
 The analysis method is a time dependent unbinned likelihood approach similar to the so called \enquote{GRB Likelihood}.
 Key features used here are:
@@ -58,6 +57,7 @@ For source positions, the 22 HESE track events from 6 years of HESE data are tes
 The list of events can be seen at the list of \href{https://wiki.icecube.wisc.edu/index.php/Analysis_of_pre-public_alert_HESE/EHE_events#HESE }{pre-public alert HESE events}.
 For each of these events detailed \href{http://software.icecube.wisc.edu/documentation/projects/millipede/index.html}{millipede} scans exist.
 The best fit positions are taken from these maps for the tested source positions by converting the best fit pixel in local coordinates to equatorial coordinates using the \href{http://software.icecube.wisc.edu/documentation/projects/astro/index.html}{astro} module.
+You can find the scan files at \path{/data/ana/IC79/starting-event/IC170922A_scans_all_historrical_events}.
 
 Unlike other point source searches the positions of the sources are not exactly known due to our reconstruction uncertainties.
 To estimate the worsened sensitivity for that, the millipede scan maps are later used to inject source positions.
@@ -173,7 +173,7 @@ The PDF is thus only declination dependent and can be written as
   f_j(\delta) = \frac{1}{2\pi}P(\delta, t_j)
 \end{equation}
 where $t_j$ is the source time.
-A PDF for each source is built considering the sources time and the event distribution at these times to model the different background behaviour due to seasonal variations.
+A PDF for each source is built considering the sources time and the event distribution at these times to model the different background behavior due to seasonal variations.
 Fig.~(\ref{fig:rate_all_samples}) shows the seasonal variations for the whole sky for all samples.
 The steps are:
 \begin{enumerate}
@@ -455,6 +455,27 @@ Each background trial data set is created as follows:
 The selected data are then fit with the likelihood explained previously.
 This builds a background only test statistic distribution per time window.
 
+\subsection{Post Trial Method}
+Because we scan for multiple time windows and want to pick the best result from all scans in the final unblinding, the final p-value needs to be trial corrected.
+To obtain the pre-trial p-value distribution to estimate the post-trial p-value, we need to simulate the unblinding case with pure background.
+For this we inject background events from the injection model with the largest time window and successively fit the same data with every time window in the LLH model.
+This yields 21 p-values per trial from which the best one (the smallest p-value per trial) is picked.
+This pool of best p-values builds the post-trial distribution.
+See fig.~(\ref{fig:post_trials}) for the distribution built this way.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/post_trials/post_trials_log.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.49\textwidth}
+    \includegraphics[width=0.9\textwidth]{inc/post_trials/pre_vs_post_sigmas.png}
+  \end{subfigure}
+  \caption{Pre-trial p-value distribution (left) and relation between pre-trial and post-trial p-values in significance (right).}
+  \label{fig:post_trials}
+\end{figure}
+
 \subsection{Signal Trial Injection}
 If we want to estimate how well the analysis performs beforehand or to estimate upper limits after unblinding a null result we need to simulate a measurement with actual signal.
 This is done by injecting signal-like events from MC data sets weighted to the desired astrophysical flux expected from the sources.
@@ -594,8 +615,42 @@ See fig.~(\ref{fig:performance_healpy_flux}) for the limits per time window.
 
 
 \section{Analysis Results}
-\emph{After unblinding.}
+Unblinding got granted at the analysis call on June 14th.
+Unblinding is performed by doing a single fit on the held back on-time data for each time window.
+21 pre-trial p-values are reported and a single post-trial corrected p-value.
 
+No significant excess of neutrinos is seen around the 22 proposed HESE events taken as source positions.
+Table~(\ref{tab:unblinded}) summarizes the 21 pre-trial fit results.
+The best pre-trial fit was achieved for the largest time window, with a pre-trial p-value of $0.068$ and a best fit test statistic of $1.84$.
+The final post-trial p-value is then $0.30$, corresponding to $1.032\sigma$, obtained by inserting the smallest pre-trial p-value in the survival function of the distribution.
+The resulting test statistic values and the pre-trial p-value in the distributions can be seen in fig.~(\ref{fig:unblinded}).
+
+\begin{table}[htbp]
+  \caption{Fit results on on-time data for each of the time windows.}
+  \begin{tabular}{l|ccccccccccccccccccccc}
+  \toprule
+  ID & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 & 18 & 19 & 20 & 21 \\
+  \midrule
+  $\hat{n}_S$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 2.33 \\
+  $\Lambda$ & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 0 & 1.84 \\
+  $p$ & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 1 & 0.068 \\
+  \bottomrule
+  \end{tabular}
+  \label{tab:unblinded}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[c]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{inc/unblind/best_fit_ts_pre_trial.png}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[c]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{inc/unblind/best_fit_post_trial.png}
+  \end{subfigure}
+  \caption{Pre-trial best fit for largest time window inserted in the background only TS (left). Pre-trial p-value in the pre-trial p-value distribution to obtain the final post-trial p-value (right).}
+  \label{fig:unblinded}
+\end{figure}
 
 
 \appendix
@@ -609,11 +664,25 @@ See fig.~(\ref{fig:performance_healpy_flux}) for the limits per time window.
   \item[Transients Call] October 30th, 2017: \href{https://drive.google.com/file/d/0B_Gkg-MCR-1zOFdkajczT3JWNUU/view}{Performance and BG trials for all time windows}
   \item[Transients Call] April 30th, 2018: \href{https://drive.google.com/file/d/12vOMOpt1nMrmnBdM_4wV5sMdg0FUJLqF/view}{Update to 6 years of HESE sources}
   \item[Analysis Call] May 3rd, 2018: \href{https://drive.google.com/file/d/199a-w_JzH4m6RdVKmOb57rWMw4-HDSJj/view}{Analysis review in analysis call}
+  \item[Analysis Call] June 14th, 2018: \href{https://drive.google.com/file/d/1IWSqQdm1H_ZeW7z7X9LVM6ZrtsWEdilZ/view}{Unblinding request in analysis call}
 \end{description}
 
 \section*{Reviewer Q\&A}
 \subsection*{Questions from Sandro Kopper -- Collaboration Reviewer}
   \begin{itemize}
+      \item Q: [Summarized] The HESE veto filter used to remove MC events from the injected signal MC has an energy dependent efficiency (see infos at \href{http://arxiv.org/abs/1405.0525v1}{arxiv:1405.0525v1} and \href{https://arxiv.org/abs/1805.11003v2}{arxiv:1805.11003v2}). Is this taken into account for removing the HESE-like events from MC?
+      Does this even matter?
+      Try to estimate the effect by using all MC for performance estimation.
+      \item A: This wasn't taken into account. To estimate the effect, I created performance trials with all signal MC included for signal injection and model building but compared to the original BG test statistics built with HESE removed MCs.
+      Fig.~(\ref{fig:performance_ratios_healpy_flux}) shows the ratio between the performance curves (see fig.~(\ref{fig:performance_healpy_flux}) for the performance with HESE events removed) and with all MC events includes, for the healpy injection scenario.
+      The effect seems to be very small, so the original MC selection is kept.
+      \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.9\textwidth]{inc/performance/healpy_comp/ratio.png}
+        \caption{Performance curve ratios for including all MCs vs removing all HESE-like events without taking into account filter efficiency, for the healpy injection mode.}
+        \label{fig:performance_ratios_healpy_flux}
+      \end{figure}
+
       \item Q:
         Concerning the wiki: Better describe spatial PDF, time windows, background injection, rate model fit, used data sets.
       \item A:
