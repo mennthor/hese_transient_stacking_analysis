@@ -12,5 +12,5 @@ gitpython
 /home/tmenne/software/myi3scripts
 /home/tmenne/software/dagman
 
-/home/tmenne/software/skylab_-_frozen/trunk
+/home/tmenne/software/skylab_frozen/trunk
 
