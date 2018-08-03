@@ -89,9 +89,9 @@ for key in sample_names:
     fmod = opts["model_energy_opts"].pop("flux_model")
     flux_model = flux_model_factory(fmod["model"], **fmod["args"])
     opts["model_energy_opts"]["flux_model"] = flux_model
-    llhmod = GRBModel(X=exp_off, MC=mc, srcs=srcs_rec, run_list=runlist,
-                      spatial_opts=opts["model_spatial_opts"],
+    llhmod = GRBModel(spatial_opts=opts["model_spatial_opts"],
                       energy_opts=opts["model_energy_opts"])
+    llhmod.fit(X=exp_off, MC=mc, srcs=srcs_rec, run_list=runlist)
     llhs[key] = GRBLLH(llh_model=llhmod, llh_opts=opts["llh_opts"])
 
     del exp_off
