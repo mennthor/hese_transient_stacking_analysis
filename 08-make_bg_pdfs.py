@@ -32,6 +32,9 @@ if not os.path.isdir(plotpath):
     os.makedirs(plotpath)
 
 files = sorted(glob(inpath))
+if len(files) == 0:
+    print("No files found!")
+
 for fpath in files:
     fname = os.path.basename(fpath)
     print("Making PDF from BG trial file: {}".format(fname))
@@ -52,7 +55,7 @@ for fpath in files:
     pval_thresh = 0.5
     best_thresh, best_idx, pvals, scales = stats.scan_best_thresh(
         emp_dist, thresh_vals, pval_thresh=pval_thresh)
-
+    print("  Best thresh is at: {:.2f}".format(best_thresh))
     # Save whole PDF object to recoverable JSON file. Save stored data with
     # float16 precision, which is sufficient and saves space
     pdf_name = os.path.join(outpath, "bg_pdf_" + fname)
